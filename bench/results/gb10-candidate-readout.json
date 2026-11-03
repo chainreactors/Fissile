@@ -1,0 +1,121 @@
+{
+ "schema": "fissile-candidate-readout-v1",
+ "hardware": "One NVIDIA GB10 (SM121), 128 GB unified memory; driver 580.178.04",
+ "accuracy_set": {
+  "source": "Stratified sample of the 27,438-request evaluation suite (ScopeJudge excluded)",
+  "groups": 66,
+  "requests": 7916,
+  "questions": 8480,
+  "tokens": 2933047,
+  "question_types": {
+   "choice": 6972,
+   "noul": 1203,
+   "score": 305
+  },
+  "decision": "Four-decimal candidate probability argmax with lexical tie break"
+ },
+ "comparisons": {
+  "scope_committed_v1_vs_v2_candidate_readout": {
+   "note": "Committed source/gb10-mixed-v1/sglang vs changed source/gb10-mixed-v2/sglang-candidates; 3 rounds",
+   "questions": 1043,
+   "speedup": 1.0938690723317628,
+   "ci95": [
+    1.0898548294976782,
+    1.0983288069393398
+   ],
+   "baseline_mean_ms": 64.86493344662772,
+   "candidate_mean_ms": 59.29862639626274,
+   "accuracy_baseline": 0.9578139980824545,
+   "accuracy_candidate": 0.9578139980824545,
+   "correct_baseline": 999,
+   "correct_candidate": 999,
+   "balanced_baseline": 0.7991773148958516,
+   "balanced_candidate": 0.7991773148958516,
+   "decision_flips": 0,
+   "prob_delta_median": 4.060569436248329e-09,
+   "prob_delta_p99": 1.8896643361188126e-08,
+   "prob_delta_max": 2.0614520201966968e-08
+  },
+  "suite_v2_vs_v2_candidate_readout": {
+   "note": "Same source/config; only readout differs; 1 round",
+   "questions": 8480,
+   "speedup": 1.0713602840682612,
+   "ci95": [
+    1.0688478907522512,
+    1.0739669366491058
+   ],
+   "baseline_mean_ms": 55.74662466857468,
+   "candidate_mean_ms": 52.033499372301556,
+   "accuracy_baseline": 0.7372641509433963,
+   "accuracy_candidate": 0.7372641509433963,
+   "correct_baseline": 6252,
+   "correct_candidate": 6252,
+   "balanced_baseline": 0.7210663398257409,
+   "balanced_candidate": 0.7210663398257409,
+   "decision_flips": 0,
+   "prob_delta_median": 5.002022351874302e-09,
+   "prob_delta_p99": 3.057183972643429e-08,
+   "prob_delta_max": 5.8811254421975434e-08
+  }
+ },
+ "kernel_checks": {
+  "candidate_readout": {
+   "candidate_logits_bitwise_equal": 403,
+   "sets": 403,
+   "worst_abs_diff": 0.0,
+   "full_us": 2817.4240589141846,
+   "candidate_us": 190.73600322008133,
+   "full_plus_log_softmax_us": 2876.1119842529297,
+   "candidate_plus_log_softmax_us": 242.09599941968918
+  }
+ },
+ "source_hashes": {
+  "fissile/__init__.py": "3d4bc0a01ec33067e3e9f53cfc2bc564b8ac0832885bef1dceffa58f102fdb9c",
+  "fissile/_vendor/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+  "fissile/_vendor/sm12x/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+  "fissile/_vendor/sm12x/register_paired.py": "bb0ddb3033b26beed15164d49279c060a9d59930be2715ca58a6fe47fec589bb",
+  "fissile/_vendor/sm12x/scale_layout.py": "24261069218f5c83e4214520244edf6736b1fa90cd20e208a273a1a8f20f1b08",
+  "fissile/_vendor/tensorfold/prompt16.cu": "13c24ebf15ad912d62f8830d59cbfa7c9fce0c76112dac3c84cffce7fc671b26",
+  "fissile/artifacts.py": "68c6d76e831d9760365b218d1410a0c4d080298676de7f49fd4dc573779c342e",
+  "fissile/backends/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+  "fissile/backends/contracts.py": "2608d430e05b5ecea4fd449e8612f2b15b8878f1f0af835746d4c9e95ea11667",
+  "fissile/backends/registry.py": "2a67384cacbfbb2538e1f0619fd4ba691bff5e8075078def86f5ad5bb404cf03",
+  "fissile/backends/sglang/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+  "fissile/backends/sglang/engine.py": "83a3c75babaf4b7b4c02c4a0b91d68a9f11760b14bdb20e7d3fa99da71771a51",
+  "fissile/backends/sglang/model.py": "aa45b7afd65959d601410f4b52cd58c8ce33ab40a2700858b14df448b921f3d8",
+  "fissile/backends/torch.py": "64d9de08490408e6ecbbb8c5285fed45a9e255fefd5dbff1321908019f95cb97",
+  "fissile/backends/torch_pointwise.py": "63e1a3cf9bae740208e9411cd692e23730f4bf02fee71be9bbf7561d0064bbdf",
+  "fissile/build.py": "6ae50dad605ec08e6490fa8884c71c91befa26e56bc4ba9c73ec59f55f05192f",
+  "fissile/cli.py": "4977cf4e7629e5e2c80cf3357ba2e139b1f7488f5874b737d89c077c21a17925",
+  "fissile/config.py": "c8224d0b0d0518a92493ed9eaa57a64600cd00802e89376bf594c8e99c49af43",
+  "fissile/kernels/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+  "fissile/kernels/fp4_codes.py": "19a909d21346a4796bf31a23cbdad0c3c2ae837fafa97575dd66d037bd8f16fb",
+  "fissile/kernels/fp4_gemm.cu": "29fd786c016acb6208e28c8681759b02e90567eee117027930f005ba778f590d",
+  "fissile/kernels/fp4_gemm.py": "c1b0501474abd7b961c0156fd3e8911aee74b9bbe5212bd0dd09ef69e20bd155",
+  "fissile/kernels/fp8.py": "142b834afce2cf5f8b8865c5671e96932a7f6ebf08b04a585a4a8efc4182f71d",
+  "fissile/kernels/native_rms.py": "1723193a7d7639b644d20973ecd7839b87c6c1cc8c37cafefced18ef0faa6b97",
+  "fissile/kernels/nvfp4.py": "c48cc3795cd719c28e028a8ab59df97f3237ba4eb0b1e2ebaebeddcf04975298",
+  "fissile/kernels/nvfp4_adaptive.py": "16bedb1a6d16c3f7f660f4b4de1cd41c99a2fb6bcf70f1f89c8950a3971045ce",
+  "fissile/kernels/nvfp4_fast.py": "9d063d98a3b06adcecb530a7d489a34e0340760ff38ade799c2c374f0941ee26",
+  "fissile/kernels/packs.py": "be0726bccb3dce236760adcf7d39f44049717931ede69052fe96910456c6356c",
+  "fissile/kernels/paired_glu.py": "74425fcf52eb4fd601f750e3c5be87f4bc1f0f0e555e9d49958e1ff4a1853429",
+  "fissile/kernels/pointwise.py": "9087ba61e8338d4de33e5d64ffd9a1370eb55f4eab668200737b06227cc1a08f",
+  "fissile/kernels/tensorfold.cu": "6675b57038c54a3e83ef00b2c6c8befeb3182edf2de4f20c0abdcf8a0c70b796",
+  "fissile/kernels/tensorfold.py": "f9830640d112592a8cc40f3eeeed976498c1bb23328b18cb77fd3b02e9a28a13",
+  "fissile/models/__init__.py": "31404ab9afd7bcabbd537c1a176817a9f0d1c114e1f98bf9c5803a9d3965ed3c",
+  "fissile/models/qwen35.py": "4e94bc0abf74eec25a65c22345e5c2a740beae386a762a6fceb36e7668bff31d",
+  "fissile/models/spec.py": "f3484986a79d444403be48a4a4c0f35150e5ed858cbfd7d57c38a7f863f6338b",
+  "fissile/providers/__init__.py": "70d2a79e112d90eadc9fd72f3c8fbfb793794fd7b682161eea0e36127159e3fd",
+  "fissile/providers/gb10.py": "e8075bad04f7f49915a648f8155a83a6b38867cd9017f429de0489f9935ebb60",
+  "fissile/providers/gb10_cutlass.py": "d9008e1632b82c72fee4af9436c3abf3383a5c1dfcb532e9594f713c3fe6f18b",
+  "fissile/providers/sm120.py": "98b8515d17a24a1314885c6e80e87606bc0bce7e28d9a80eee0defe0a5d2f821",
+  "fissile/quantization/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+  "fissile/quantization/gptq.py": "5e2f275b2a48e1fb6d582de4dfdadcabd7460690dfe7d4f23859ac25cd1ca9e9",
+  "fissile/quantization/gptq_stable.py": "04f08e0018d90212f6eb03af30252596e3c886de045e9853639ff1292d80e47a",
+  "fissile/quantization/mse.py": "596ac4722031d30aaaa814595b9a7e476b83b1ab162eb665ab6c6c5ecd270f81",
+  "fissile/quantization/prepare.py": "e2b00b59f467ce3d86a597daa73acf9e851480a6e9ffc0ebabe300e20a736f0f",
+  "fissile/recipes/__init__.py": "175d412119a55ff8a14222165c5544068ae8c22dade1ddb31e515aa1c7a01e08",
+  "fissile/runtime/__init__.py": "c99b2a9214047a7d0f3f7ab2efdf189002823c158f8254eb5c2041fe4e6b0b17",
+  "fissile/runtime/mixed.py": "42384251f78654ceb232105f90ab5dc1433562d7fac0e2961f266c6a7fb5a0ce"
+ }
+}

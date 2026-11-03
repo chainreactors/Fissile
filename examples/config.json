@@ -1,0 +1,10 @@
+{
+  "format": "fissile-config-v1",
+  "profile": "qwen3.5-dense-9b",
+  "manifest": "../artifacts/manifest.json",
+  "artifacts_dir": "../artifacts/packs",
+  "tensorfold_library": "../artifacts/libfissile_tensorfold.so",
+  "silu_lut": "../artifacts/silu.safetensors",
+  "silu_lut_sha256": "REPLACE_WITH_VERIFIED_SHA256",
+  "report_dir": "../artifacts/sglang-run-001"
+}

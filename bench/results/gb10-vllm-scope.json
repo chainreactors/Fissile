@@ -1,0 +1,73 @@
+{
+  "schema": "fissile-vllm-scope-benchmark-v1",
+  "date": "2026-11-04",
+  "hardware": {
+    "gpu": "NVIDIA GB10",
+    "gpu_count": 1,
+    "unified_memory_gb": 128
+  },
+  "software": {
+    "vllm": "0.29.0",
+    "torch": "2.13.0+cu130",
+    "triton": "3.7.1",
+    "transformers": "5.17.0",
+    "nvidia-cutlass-dsl": "4.8.0",
+    "sglang_reference": "0.5.21"
+  },
+  "dataset": {
+    "name": "ScopeJudge",
+    "questions": 1043,
+    "input_tokens": 557077
+  },
+  "method": {
+    "vllm": "open_backend('vllm'); all questions submitted at once; max_num_seqs 1; one transport token",
+    "sglang": "open_backend-equivalent SGLang engine behind an HTTP gateway at concurrency 64"
+  },
+  "results": {
+    "gb10-mixed-v1": {
+      "vllm": {
+        "requests_per_s": 11.34,
+        "correct": 994,
+        "balanced_accuracy": 0.8129,
+        "false_allow": 20,
+        "false_deny": 29,
+        "serial_ms_per_request": 95.7,
+        "startup_s": 192.0
+      },
+      "sglang": {
+        "requests_per_s": 16.29,
+        "correct": 999,
+        "balanced_accuracy": 0.7992,
+        "false_allow": 22,
+        "false_deny": 22
+      }
+    },
+    "gb10-mixed-v2": {
+      "vllm": {
+        "requests_per_s": 11.53,
+        "correct": 994,
+        "balanced_accuracy": 0.8129,
+        "false_allow": 20,
+        "false_deny": 29,
+        "serial_ms_per_request": 94.8,
+        "startup_s": 174.2
+      },
+      "sglang": {
+        "requests_per_s": 16.9,
+        "correct": 999,
+        "balanced_accuracy": 0.7992,
+        "false_allow": 22,
+        "false_deny": 22
+      }
+    }
+  },
+  "vllm_vs_sglang": {
+    "decisions_agree": 1022,
+    "questions": 1043,
+    "mean_probability_difference": 0.0402,
+    "max_probability_difference": 0.3306
+  },
+  "vllm_providers_identical": true,
+  "vllm_repeat_bitwise_identical": true,
+  "full_input_tokens_validated": 16384
+}

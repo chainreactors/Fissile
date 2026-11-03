@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chainreactor-fissile"
+version = "0.1.0a1"
+description = "Mixed-precision inference for SGLang, vLLM and PyTorch on NVIDIA GB10"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+keywords = ["inference", "quantization", "nvfp4", "fp8", "sglang", "vllm", "cuda", "gb10"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: GPU :: NVIDIA CUDA",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/chainreactors/Fissile"
+Documentation = "https://github.com/chainreactors/Fissile/tree/master/docs"
+Issues = "https://github.com/chainreactors/Fissile/issues"
+
+[project.optional-dependencies]
+sglang = [
+  "torch==2.13.0", "sglang==0.5.21", "transformers==5.12.1",
+  "triton==3.7.1", "nvidia-cutlass-dsl==4.8.0", "safetensors>=0.6,<1",
+  "ninja>=1.11", "cuda-python>=13,<14"
+]
+vllm = [
+  "torch==2.13.0", "vllm==0.29.0", "triton==3.7.1",
+  "safetensors>=0.6,<1", "ninja>=1.11", "cuda-python>=13,<14"
+]
+torch = [
+  "torch>=2.13,<2.15", "transformers>=5.12,<6", "triton>=3.7,<4",
+  "nvidia-cutlass-dsl==4.8.0", "safetensors>=0.6,<1", "cuda-python>=13,<14"
+]
+test = ["build>=1.2"]
+
+[project.scripts]
+fissile = "fissile.cli:main"
+
+[tool.setuptools]
+license-files = ["NOTICE", "THIRD_PARTY_NOTICES.md", "licenses/*.txt"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"fissile.kernels" = ["*.cu"]
+"fissile._vendor" = ["tensorfold/*", "sm12x/LICENSE*"]

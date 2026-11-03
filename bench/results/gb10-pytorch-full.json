@@ -1,0 +1,463 @@
+{
+  "schema": "fissile-pytorch-full-suite-v1",
+  "published_on": "2026-10-31",
+  "hardware": {
+    "gpu": "NVIDIA GB10",
+    "gpu_count": 1,
+    "unified_memory_gb": 128
+  },
+  "workload": {
+    "model_profile": "qwen3.5-dense-9b",
+    "checkpoint": "Qwen3.5-9B-derived merged checkpoint",
+    "adapter_sha256": "3e2f6ed172b69c166ff00333c00040f59581313915d42f16205c7fac316676cc",
+    "batch_size": 1,
+    "concurrency": 1,
+    "generated_tokens": 0,
+    "full_layers": 32,
+    "full_vocabulary": 248320,
+    "cross_request_cache": false,
+    "mixed_recipe": "mixed-fp4-fp8-w4a16-v1",
+    "projection_routes": {
+      "fp4": 184,
+      "fp8": 16,
+      "w4a16": 1,
+      "paired_mlp": 32
+    }
+  },
+  "suite": {
+    "panels": 27,
+    "requests": 27438,
+    "questions": 29182
+  },
+  "implementation": "PyTorch mixed-precision implementation from which Fissile was extracted",
+  "rows": [
+    {
+      "id": "native_bf16",
+      "label": "PyTorch BF16",
+      "measured_on": "2026-10-22",
+      "requests": 27438,
+      "questions": 29182,
+      "sum_request_seconds": 6447.941592754913,
+      "mean_ms": 235.00042250728598,
+      "requests_per_second": 4.255311498297395,
+      "correct": 22270,
+      "accuracy": 0.7631416626687684,
+      "scope_accuracy": 0.9606903163950143,
+      "scope_balanced_accuracy": 0.8331524593033433
+    },
+    {
+      "id": "pytorch_mixed",
+      "label": "PyTorch mixed-precision implementation",
+      "measured_on": "2026-10-28",
+      "requests": 27438,
+      "questions": 29182,
+      "sum_request_seconds": 1812.8985151380766,
+      "mean_ms": 66.07254592674673,
+      "requests_per_second": 15.134879184293572,
+      "correct": 21804,
+      "accuracy": 0.7471729148104996,
+      "scope_accuracy": 0.9539789069990412,
+      "scope_balanced_accuracy": 0.7809207071591108
+    }
+  ],
+  "speedup": 3.556703002905717,
+  "accuracy_change_pp": -1.596874785826874,
+  "net_correct_lost": 466,
+  "quality_gate_passed": false,
+  "timing": {
+    "metric": "sum of recorded request seconds",
+    "paired_same_run": false,
+    "measurement_dates": [
+      "2026-10-22",
+      "2026-10-28"
+    ],
+    "boundary": "Complete request scoring with encoding and execution checks; loading, preparation, artifact writes and between-request gaps excluded.",
+    "wrapper_difference": "Native and mixed runs use different encoding and execution-check wrappers and cold/warm shape histories."
+  },
+  "by_panel": {
+    "scope-development": {
+      "native": {
+        "requests": 1043,
+        "questions": 1043,
+        "correct": 1002,
+        "accuracy_all_questions": 0.9606903163950143
+      },
+      "candidate": {
+        "requests": 1043,
+        "questions": 1043,
+        "correct": 995,
+        "accuracy_all_questions": 0.9539789069990412
+      }
+    },
+    "atbench-codex": {
+      "native": {
+        "requests": 500,
+        "questions": 500,
+        "correct": 410,
+        "accuracy_all_questions": 0.82
+      },
+      "candidate": {
+        "requests": 500,
+        "questions": 500,
+        "correct": 413,
+        "accuracy_all_questions": 0.826
+      }
+    },
+    "dynamic-retention": {
+      "native": {
+        "requests": 200,
+        "questions": 344,
+        "correct": 226,
+        "accuracy_all_questions": 0.6569767441860465
+      },
+      "candidate": {
+        "requests": 200,
+        "questions": 344,
+        "correct": 223,
+        "accuracy_all_questions": 0.6482558139534884
+      }
+    },
+    "custom-bench": {
+      "native": {
+        "requests": 231,
+        "questions": 231,
+        "correct": 181,
+        "accuracy_all_questions": 0.7835497835497836
+      },
+      "candidate": {
+        "requests": 231,
+        "questions": 231,
+        "correct": 180,
+        "accuracy_all_questions": 0.7792207792207793
+      }
+    },
+    "B01/typed_decisions": {
+      "native": {
+        "requests": 400,
+        "questions": 2000,
+        "correct": 1282,
+        "accuracy_all_questions": 0.641
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 2000,
+        "correct": 1251,
+        "accuracy_all_questions": 0.6255
+      }
+    },
+    "B01/massive_intent/all_registered_languages": {
+      "native": {
+        "requests": 4200,
+        "questions": 4200,
+        "correct": 3592,
+        "accuracy_all_questions": 0.8552380952380952
+      },
+      "candidate": {
+        "requests": 4200,
+        "questions": 4200,
+        "correct": 3532,
+        "accuracy_all_questions": 0.840952380952381
+      }
+    },
+    "B01/massive_scenario/all_registered_languages": {
+      "native": {
+        "requests": 4200,
+        "questions": 4200,
+        "correct": 2953,
+        "accuracy_all_questions": 0.7030952380952381
+      },
+      "candidate": {
+        "requests": 4200,
+        "questions": 4200,
+        "correct": 2837,
+        "accuracy_all_questions": 0.6754761904761905
+      }
+    },
+    "B01/en.prompt_injections": {
+      "native": {
+        "requests": 116,
+        "questions": 116,
+        "correct": 90,
+        "accuracy_all_questions": 0.7758620689655172
+      },
+      "candidate": {
+        "requests": 116,
+        "questions": 116,
+        "correct": 86,
+        "accuracy_all_questions": 0.7413793103448276
+      }
+    },
+    "B01/en.boolq": {
+      "native": {
+        "requests": 600,
+        "questions": 600,
+        "correct": 538,
+        "accuracy_all_questions": 0.8966666666666666
+      },
+      "candidate": {
+        "requests": 600,
+        "questions": 600,
+        "correct": 529,
+        "accuracy_all_questions": 0.8816666666666667
+      }
+    },
+    "B01/xnli/all_registered_languages": {
+      "native": {
+        "requests": 4500,
+        "questions": 4500,
+        "correct": 3164,
+        "accuracy_all_questions": 0.7031111111111111
+      },
+      "candidate": {
+        "requests": 4500,
+        "questions": 4500,
+        "correct": 3093,
+        "accuracy_all_questions": 0.6873333333333334
+      }
+    },
+    "B01/en.ag_news": {
+      "native": {
+        "requests": 600,
+        "questions": 600,
+        "correct": 520,
+        "accuracy_all_questions": 0.8666666666666667
+      },
+      "candidate": {
+        "requests": 600,
+        "questions": 600,
+        "correct": 513,
+        "accuracy_all_questions": 0.855
+      }
+    },
+    "B01/en.emotion": {
+      "native": {
+        "requests": 600,
+        "questions": 600,
+        "correct": 336,
+        "accuracy_all_questions": 0.56
+      },
+      "candidate": {
+        "requests": 600,
+        "questions": 600,
+        "correct": 337,
+        "accuracy_all_questions": 0.5616666666666666
+      }
+    },
+    "B02": {
+      "native": {
+        "requests": 5100,
+        "questions": 5100,
+        "correct": 4060,
+        "accuracy_all_questions": 0.796078431372549
+      },
+      "candidate": {
+        "requests": 5100,
+        "questions": 5100,
+        "correct": 3956,
+        "accuracy_all_questions": 0.7756862745098039
+      }
+    },
+    "B03/banking77_full": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 309,
+        "accuracy_all_questions": 0.7725
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 294,
+        "accuracy_all_questions": 0.735
+      }
+    },
+    "B03/app.support_triage": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 152,
+        "accuracy_all_questions": 0.38
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 147,
+        "accuracy_all_questions": 0.3675
+      }
+    },
+    "B03/app.guardrails_jailbreak": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 349,
+        "accuracy_all_questions": 0.8725
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 350,
+        "accuracy_all_questions": 0.875
+      }
+    },
+    "B03/app.moderation_toxicity": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 298,
+        "accuracy_all_questions": 0.745
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 301,
+        "accuracy_all_questions": 0.7525
+      }
+    },
+    "B03/app.phishing": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 358,
+        "accuracy_all_questions": 0.895
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 348,
+        "accuracy_all_questions": 0.87
+      }
+    },
+    "B03/ag_news": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 350,
+        "accuracy_all_questions": 0.875
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 343,
+        "accuracy_all_questions": 0.8575
+      }
+    },
+    "B03/emotion": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 229,
+        "accuracy_all_questions": 0.5725
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 231,
+        "accuracy_all_questions": 0.5775
+      }
+    },
+    "B03/app.rag_relevance": {
+      "native": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 232,
+        "accuracy_all_questions": 0.58
+      },
+      "candidate": {
+        "requests": 400,
+        "questions": 400,
+        "correct": 224,
+        "accuracy_all_questions": 0.56
+      }
+    },
+    "B03/app.model_routing_domain": {
+      "native": {
+        "requests": 399,
+        "questions": 399,
+        "correct": 377,
+        "accuracy_all_questions": 0.9448621553884712
+      },
+      "candidate": {
+        "requests": 399,
+        "questions": 399,
+        "correct": 376,
+        "accuracy_all_questions": 0.9423558897243107
+      }
+    },
+    "B05/boolq": {
+      "native": {
+        "requests": 300,
+        "questions": 300,
+        "correct": 256,
+        "accuracy_all_questions": 0.8533333333333334
+      },
+      "candidate": {
+        "requests": 300,
+        "questions": 300,
+        "correct": 256,
+        "accuracy_all_questions": 0.8533333333333334
+      }
+    },
+    "B05/massive-de-DE": {
+      "native": {
+        "requests": 350,
+        "questions": 350,
+        "correct": 282,
+        "accuracy_all_questions": 0.8057142857142857
+      },
+      "candidate": {
+        "requests": 350,
+        "questions": 350,
+        "correct": 274,
+        "accuracy_all_questions": 0.7828571428571428
+      }
+    },
+    "B05/massive-en-US": {
+      "native": {
+        "requests": 350,
+        "questions": 350,
+        "correct": 293,
+        "accuracy_all_questions": 0.8371428571428572
+      },
+      "candidate": {
+        "requests": 350,
+        "questions": 350,
+        "correct": 293,
+        "accuracy_all_questions": 0.8371428571428572
+      }
+    },
+    "B05/pubmedqa": {
+      "native": {
+        "requests": 250,
+        "questions": 250,
+        "correct": 179,
+        "accuracy_all_questions": 0.716
+      },
+      "candidate": {
+        "requests": 250,
+        "questions": 250,
+        "correct": 176,
+        "accuracy_all_questions": 0.704
+      }
+    },
+    "B05/squad2": {
+      "native": {
+        "requests": 299,
+        "questions": 299,
+        "correct": 252,
+        "accuracy_all_questions": 0.842809364548495
+      },
+      "candidate": {
+        "requests": 299,
+        "questions": 299,
+        "correct": 246,
+        "accuracy_all_questions": 0.822742474916388
+      }
+    }
+  },
+  "provenance": {
+    "timing_summary_sha256": "398127851381abb83efbfed4f299d00c3f338c7ffc76e55ae432e31165016a2b",
+    "quality_audit_sha256": "67b0fec469b6bc4d33057ff4121a8f9d0e9928ac907ec66605415599a2790b62",
+    "native_predictions_sha256": "895d20d6099145d2406ad17ae4a4fb32d0c435669bcd6df1a1cab34a545e9ce7",
+    "mixed_predictions_sha256": "066d8e631e011d6900af51abb6ca8286f43ab655f0251fdcebfcf6e7e877704a"
+  }
+}

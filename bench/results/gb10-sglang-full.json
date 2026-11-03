@@ -1,0 +1,67 @@
+{
+ "schema": "fissile-sglang-full-suite-v1",
+ "hardware": "NVIDIA GB10 (SM121), 128 GB unified memory; driver 580.178.04; CUDA 13.0",
+ "software": "Torch 2.13.0+cu130, SGLang 0.5.21, Transformers 5.12.1, Triton 3.7.1, CuTe DSL 4.8.0",
+ "workload": {
+  "requests": 27438,
+  "questions": 29182,
+  "input_tokens": 11142061,
+  "batch_size": 1,
+  "generated_tokens": 0,
+  "inputs_sha256": "f2024e97a132d577bf9af07dbf290c59c84bfc55e77b5b8da96b0fbbbd68feaf",
+  "decision": "Four-decimal candidate probability argmax, lexical tie break"
+ },
+ "protocol": "One engine per device; 48-request warm-up, then one timed pass over every question. Timing: CheckedSession.score.",
+ "cross_device_check": "Identical configuration on three GB10 devices: raw scores bitwise identical on 1,043 of 1,043 requests",
+ "arms": {
+  "bf16": {
+   "engine": "SGLang 0.5.21",
+   "backend": null,
+   "accuracy": 0.7637584812555686,
+   "correct": 22288,
+   "mean_ms": 137.114953849091,
+   "speedup_vs_bf16": 1.0,
+   "accuracy_by_type": {
+    "choice": 0.7635455984414952,
+    "score": 0.5919037199124726,
+    "noul": 0.8084871865527694
+   },
+   "records_sha256": "64c23d75692f795081e9f5c701dbc586cec6267dfcdddef553397c6cb84edb22"
+  },
+  "gb10-mixed-v1": {
+   "engine": "SGLang 0.5.21",
+   "backend": "sglang",
+   "accuracy": 0.7518675896100336,
+   "correct": 21941,
+   "mean_ms": 59.72375836878628,
+   "speedup_vs_bf16": 2.295819245038538,
+   "accuracy_by_type": {
+    "choice": 0.7514103656804253,
+    "score": 0.574398249452954,
+    "noul": 0.799669330394048
+   },
+   "records_sha256": "6b9bb1ba3e44f1a8bf89debaa945b0c2370c73fed69968b771f562c884614dcc",
+   "decision_agreement_with_bf16": 0.9118292097868549
+  },
+  "gb10-mixed-v2": {
+   "engine": "SGLang 0.5.21",
+   "backend": "sglang-candidates",
+   "accuracy": 0.7517990542115003,
+   "correct": 21939,
+   "mean_ms": 56.43175505812731,
+   "speedup_vs_bf16": 2.42974817472638,
+   "accuracy_by_type": {
+    "choice": 0.7513291935549332,
+    "score": 0.574398249452954,
+    "noul": 0.799669330394048
+   },
+   "records_sha256": "8625e21848bdb55e75efa9f6dd73aa3701370b7d67511fe273ff00ee74e09976",
+   "decision_agreement_with_bf16": 0.9117606743883215
+  }
+ },
+ "v1_vs_v2": {
+  "decision_changes": 2,
+  "max_candidate_probability_difference": 5.960126092663387e-08,
+  "decision_changes_detail": "One question present in two panels with bitwise-identical top-two candidate logits"
+ }
+}

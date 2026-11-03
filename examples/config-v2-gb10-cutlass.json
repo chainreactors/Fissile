@@ -1,0 +1,17 @@
+{
+  "format": "fissile-config-v2",
+  "profile": "qwen3.5-dense-9b",
+  "recipe": "mixed-fp4-fp8-w4a16-v1",
+  "kernel_provider": "gb10-mixed-v2",
+  "manifest": "../artifacts/manifest.json",
+  "artifacts_dir": "../artifacts/packs",
+  "report_dir": "../artifacts/sglang-run-001",
+  "resources": {
+    "tensorfold_library": {"path": "../artifacts/libfissile_tensorfold.so"},
+    "silu_lut": {
+      "path": "../artifacts/silu.safetensors",
+      "sha256": "REPLACE_WITH_VERIFIED_SHA256"
+    },
+    "fp4_gemm_library": {"path": "../artifacts/libfissile_fp4_gemm.so"}
+  }
+}

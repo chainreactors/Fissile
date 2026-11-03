@@ -1,0 +1,252 @@
+{
+  "schema": "fissile-mixed-incremental-v1",
+  "hardware": "One NVIDIA GB10, 128 GB unified memory",
+  "model": "Same Qwen3.5-9B-derived merged checkpoint",
+  "workload": {
+    "name": "ScopeJudge",
+    "unique_questions": 1043,
+    "rounds": 3,
+    "warmup_passes_per_arm": 1,
+    "pilot_inputs": 96,
+    "generated_tokens": 0,
+    "batch_size": 1,
+    "concurrency": 1
+  },
+  "implementation_change": "Call-local same-input activation quantization reuse; individual GEMMs and prepared weights unchanged",
+  "metrics": {
+    "baseline": {
+      "sum_seconds": 207.52457655221224,
+      "mean_ms": 66.32297109370796,
+      "rps": 15.077732247355089,
+      "input_tps": 8053.17147378699,
+      "correct": 999,
+      "accuracy": 0.9578139980824545,
+      "balanced_accuracy": 0.7991773148958516,
+      "classes": {
+        "in_scope": {
+          "n": 985,
+          "correct": 963
+        },
+        "out_of_scope": {
+          "n": 58,
+          "correct": 36
+        }
+      },
+      "round_seconds": [
+        69.17143300920725,
+        69.34003155468963,
+        69.01311198831536
+      ]
+    },
+    "candidate": {
+      "sum_seconds": 203.63724250299856,
+      "mean_ms": 65.08061441450897,
+      "rps": 15.365558684354731,
+      "input_tps": 8206.90252656211,
+      "correct": 999,
+      "accuracy": 0.9578139980824545,
+      "balanced_accuracy": 0.7991773148958516,
+      "classes": {
+        "in_scope": {
+          "n": 985,
+          "correct": 963
+        },
+        "out_of_scope": {
+          "n": 58,
+          "correct": 36
+        }
+      },
+      "round_seconds": [
+        67.873430066742,
+        67.97500222595409,
+        67.78881021030247
+      ]
+    }
+  },
+  "incremental_speedup": 1.0190895044611323,
+  "latency_reduction_percent": 1.873192136467583,
+  "throughput_gain_percent": 1.9089504461132334,
+  "raw_scores_exact": true,
+  "baseline_matches_previous_scores": true,
+  "coverage": 201,
+  "timing": "CheckedSession.score, including SGLang IPC; tokenization, external worker IPC, startup and warmup excluded. Two mixed-precision engines resident, one GPU call at a time.",
+  "source_hashes": {
+    "baseline": {
+      "chainreactor_fissile.egg-info/PKG-INFO": "76e956611e98de69201084cc659cbeef9409f1e4c8ed4a4c80433fecbc26ac53",
+      "chainreactor_fissile.egg-info/SOURCES.txt": "2ff88eb1b9ede787f2a7169a762def68db6ebe995212d2ffcd0f3fd262078969",
+      "chainreactor_fissile.egg-info/dependency_links.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "chainreactor_fissile.egg-info/entry_points.txt": "430cfee048edc794f7d668ab3b5dedf43d70843a7593b82f2d70a29d2951d5c7",
+      "chainreactor_fissile.egg-info/requires.txt": "5d533db515548ce2fd7dac7877144c3f3f2d87b41e6e8791cb7b709ca34c8f3e",
+      "chainreactor_fissile.egg-info/top_level.txt": "c47be1996eae9b2d5117869da961122a2ef3a11a1087169db890b432289b922f",
+      "fissile/__init__.py": "3d4bc0a01ec33067e3e9f53cfc2bc564b8ac0832885bef1dceffa58f102fdb9c",
+      "fissile/_vendor/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/_vendor/sm12x/LICENSE.flashinfer": "cb67c224f503e0a063908950b12f89a7280c6e527dcffac972aa114e4bf3c5de",
+      "fissile/_vendor/sm12x/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/_vendor/sm12x/register_paired.py": "bb0ddb3033b26beed15164d49279c060a9d59930be2715ca58a6fe47fec589bb",
+      "fissile/_vendor/sm12x/scale_layout.py": "24261069218f5c83e4214520244edf6736b1fa90cd20e208a273a1a8f20f1b08",
+      "fissile/_vendor/tensorfold/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "fissile/_vendor/tensorfold/LICENSE.MIT.txt": "be6a9ee4462784a762b21790954b8e76c4dcacc9fb6da2a40d03a8a9bddec93e",
+      "fissile/_vendor/tensorfold/NOTICE": "74b59811a5ebc3c28e7fc89f8f189854b6ca6d44392a98394950b24ba3c1b8e7",
+      "fissile/_vendor/tensorfold/THIRD_PARTY_NOTICES.md": "7465567114dab50f97f964aa35a627f0ab8b72c6d59a3c0746493612cc69af9d",
+      "fissile/_vendor/tensorfold/prompt16.cu": "13c24ebf15ad912d62f8830d59cbfa7c9fce0c76112dac3c84cffce7fc671b26",
+      "fissile/_vendor/tensorfold/qmm_frag.cuh": "e8030c07c2926ecdc15d71a6e13591a43dac524cd3aa85e388cfafc746bf4c07",
+      "fissile/artifacts.py": "68c6d76e831d9760365b218d1410a0c4d080298676de7f49fd4dc573779c342e",
+      "fissile/backends/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/backends/contracts.py": "2608d430e05b5ecea4fd449e8612f2b15b8878f1f0af835746d4c9e95ea11667",
+      "fissile/backends/registry.py": "8dbc9ef203e1399d24e3c4a181df78289fb576efc4675529d53202eca616dce5",
+      "fissile/backends/sglang/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/backends/sglang/engine.py": "f1a1683ae007c788a232c32d2180a0abd79b5c27246c801272a071b7b6c79ee2",
+      "fissile/backends/sglang/model.py": "6c4208d491999c76dac28232a90a8683a86cb46915e7989cc8736f2270328a08",
+      "fissile/backends/torch.py": "64d9de08490408e6ecbbb8c5285fed45a9e255fefd5dbff1321908019f95cb97",
+      "fissile/backends/torch_pointwise.py": "63e1a3cf9bae740208e9411cd692e23730f4bf02fee71be9bbf7561d0064bbdf",
+      "fissile/build.py": "ed0ed1b6df35160eb3ac485d17c0fe9dfb24dc03ec954a46a3298206c5371ef1",
+      "fissile/cli.py": "4b871ac4c4ed31607a756cb847d4a608fc7c8cba03970f80299f3e6d558c52b3",
+      "fissile/config.py": "c8224d0b0d0518a92493ed9eaa57a64600cd00802e89376bf594c8e99c49af43",
+      "fissile/kernels/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/kernels/fp4_codes.py": "19a909d21346a4796bf31a23cbdad0c3c2ae837fafa97575dd66d037bd8f16fb",
+      "fissile/kernels/fp8.py": "142b834afce2cf5f8b8865c5671e96932a7f6ebf08b04a585a4a8efc4182f71d",
+      "fissile/kernels/native_rms.py": "1723193a7d7639b644d20973ecd7839b87c6c1cc8c37cafefced18ef0faa6b97",
+      "fissile/kernels/nvfp4.py": "8b8b5a3ea17a148b968bc08953aa19d208160ce1c64745100eef787bc3c36f58",
+      "fissile/kernels/nvfp4_adaptive.py": "16bedb1a6d16c3f7f660f4b4de1cd41c99a2fb6bcf70f1f89c8950a3971045ce",
+      "fissile/kernels/nvfp4_fast.py": "9d063d98a3b06adcecb530a7d489a34e0340760ff38ade799c2c374f0941ee26",
+      "fissile/kernels/packs.py": "be0726bccb3dce236760adcf7d39f44049717931ede69052fe96910456c6356c",
+      "fissile/kernels/paired_glu.py": "6227b7f33dedf45e7fe881ab35b729266b108338710577635f039abdf88dd3d2",
+      "fissile/kernels/pointwise.py": "9087ba61e8338d4de33e5d64ffd9a1370eb55f4eab668200737b06227cc1a08f",
+      "fissile/kernels/tensorfold.cu": "7ddd45998ae8afdf8652309d8546610a404c564cf98f4227541511bf8e6457bf",
+      "fissile/kernels/tensorfold.py": "f9830640d112592a8cc40f3eeeed976498c1bb23328b18cb77fd3b02e9a28a13",
+      "fissile/models/__init__.py": "31404ab9afd7bcabbd537c1a176817a9f0d1c114e1f98bf9c5803a9d3965ed3c",
+      "fissile/models/qwen35.py": "4e94bc0abf74eec25a65c22345e5c2a740beae386a762a6fceb36e7668bff31d",
+      "fissile/models/spec.py": "f3484986a79d444403be48a4a4c0f35150e5ed858cbfd7d57c38a7f863f6338b",
+      "fissile/providers/__init__.py": "68eef2e698b3a4e6fba64c0f959acae9efe862a5f9eff75d1865f1b2d803a364",
+      "fissile/providers/gb10.py": "d14eb9f9a906bacff4fd974d2261fd7871a6efebce36eb7b0de4056de6dca776",
+      "fissile/quantization/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/quantization/gptq.py": "5e2f275b2a48e1fb6d582de4dfdadcabd7460690dfe7d4f23859ac25cd1ca9e9",
+      "fissile/quantization/gptq_stable.py": "04f08e0018d90212f6eb03af30252596e3c886de045e9853639ff1292d80e47a",
+      "fissile/quantization/mse.py": "596ac4722031d30aaaa814595b9a7e476b83b1ab162eb665ab6c6c5ecd270f81",
+      "fissile/quantization/prepare.py": "e2b00b59f467ce3d86a597daa73acf9e851480a6e9ffc0ebabe300e20a736f0f",
+      "fissile/recipes/__init__.py": "175d412119a55ff8a14222165c5544068ae8c22dade1ddb31e515aa1c7a01e08",
+      "fissile/runtime/__init__.py": "c99b2a9214047a7d0f3f7ab2efdf189002823c158f8254eb5c2041fe4e6b0b17",
+      "fissile/runtime/mixed.py": "5c64207d5a280cf53c174ba844b976dd5f4dbe080c1da5b5b4fac45b6e95eedf"
+    },
+    "candidate": {
+      "chainreactor_fissile.egg-info/PKG-INFO": "76e956611e98de69201084cc659cbeef9409f1e4c8ed4a4c80433fecbc26ac53",
+      "chainreactor_fissile.egg-info/SOURCES.txt": "2ff88eb1b9ede787f2a7169a762def68db6ebe995212d2ffcd0f3fd262078969",
+      "chainreactor_fissile.egg-info/dependency_links.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "chainreactor_fissile.egg-info/entry_points.txt": "430cfee048edc794f7d668ab3b5dedf43d70843a7593b82f2d70a29d2951d5c7",
+      "chainreactor_fissile.egg-info/requires.txt": "5d533db515548ce2fd7dac7877144c3f3f2d87b41e6e8791cb7b709ca34c8f3e",
+      "chainreactor_fissile.egg-info/top_level.txt": "c47be1996eae9b2d5117869da961122a2ef3a11a1087169db890b432289b922f",
+      "fissile/__init__.py": "3d4bc0a01ec33067e3e9f53cfc2bc564b8ac0832885bef1dceffa58f102fdb9c",
+      "fissile/_vendor/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/_vendor/sm12x/LICENSE.flashinfer": "cb67c224f503e0a063908950b12f89a7280c6e527dcffac972aa114e4bf3c5de",
+      "fissile/_vendor/sm12x/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/_vendor/sm12x/register_paired.py": "bb0ddb3033b26beed15164d49279c060a9d59930be2715ca58a6fe47fec589bb",
+      "fissile/_vendor/sm12x/scale_layout.py": "24261069218f5c83e4214520244edf6736b1fa90cd20e208a273a1a8f20f1b08",
+      "fissile/_vendor/tensorfold/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "fissile/_vendor/tensorfold/LICENSE.MIT.txt": "be6a9ee4462784a762b21790954b8e76c4dcacc9fb6da2a40d03a8a9bddec93e",
+      "fissile/_vendor/tensorfold/NOTICE": "74b59811a5ebc3c28e7fc89f8f189854b6ca6d44392a98394950b24ba3c1b8e7",
+      "fissile/_vendor/tensorfold/THIRD_PARTY_NOTICES.md": "7465567114dab50f97f964aa35a627f0ab8b72c6d59a3c0746493612cc69af9d",
+      "fissile/_vendor/tensorfold/prompt16.cu": "13c24ebf15ad912d62f8830d59cbfa7c9fce0c76112dac3c84cffce7fc671b26",
+      "fissile/_vendor/tensorfold/qmm_frag.cuh": "e8030c07c2926ecdc15d71a6e13591a43dac524cd3aa85e388cfafc746bf4c07",
+      "fissile/artifacts.py": "68c6d76e831d9760365b218d1410a0c4d080298676de7f49fd4dc573779c342e",
+      "fissile/backends/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/backends/contracts.py": "2608d430e05b5ecea4fd449e8612f2b15b8878f1f0af835746d4c9e95ea11667",
+      "fissile/backends/registry.py": "8dbc9ef203e1399d24e3c4a181df78289fb576efc4675529d53202eca616dce5",
+      "fissile/backends/sglang/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/backends/sglang/engine.py": "f1a1683ae007c788a232c32d2180a0abd79b5c27246c801272a071b7b6c79ee2",
+      "fissile/backends/sglang/model.py": "fa11c0c9e209280a0f29372d4aa648803b9951863dda925ca826993fdc33f733",
+      "fissile/backends/torch.py": "64d9de08490408e6ecbbb8c5285fed45a9e255fefd5dbff1321908019f95cb97",
+      "fissile/backends/torch_pointwise.py": "63e1a3cf9bae740208e9411cd692e23730f4bf02fee71be9bbf7561d0064bbdf",
+      "fissile/build.py": "ed0ed1b6df35160eb3ac485d17c0fe9dfb24dc03ec954a46a3298206c5371ef1",
+      "fissile/cli.py": "4b871ac4c4ed31607a756cb847d4a608fc7c8cba03970f80299f3e6d558c52b3",
+      "fissile/config.py": "c8224d0b0d0518a92493ed9eaa57a64600cd00802e89376bf594c8e99c49af43",
+      "fissile/kernels/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/kernels/fp4_codes.py": "19a909d21346a4796bf31a23cbdad0c3c2ae837fafa97575dd66d037bd8f16fb",
+      "fissile/kernels/fp8.py": "142b834afce2cf5f8b8865c5671e96932a7f6ebf08b04a585a4a8efc4182f71d",
+      "fissile/kernels/native_rms.py": "1723193a7d7639b644d20973ecd7839b87c6c1cc8c37cafefced18ef0faa6b97",
+      "fissile/kernels/nvfp4.py": "8b8b5a3ea17a148b968bc08953aa19d208160ce1c64745100eef787bc3c36f58",
+      "fissile/kernels/nvfp4_adaptive.py": "16bedb1a6d16c3f7f660f4b4de1cd41c99a2fb6bcf70f1f89c8950a3971045ce",
+      "fissile/kernels/nvfp4_fast.py": "9d063d98a3b06adcecb530a7d489a34e0340760ff38ade799c2c374f0941ee26",
+      "fissile/kernels/packs.py": "be0726bccb3dce236760adcf7d39f44049717931ede69052fe96910456c6356c",
+      "fissile/kernels/paired_glu.py": "6227b7f33dedf45e7fe881ab35b729266b108338710577635f039abdf88dd3d2",
+      "fissile/kernels/pointwise.py": "9087ba61e8338d4de33e5d64ffd9a1370eb55f4eab668200737b06227cc1a08f",
+      "fissile/kernels/tensorfold.cu": "7ddd45998ae8afdf8652309d8546610a404c564cf98f4227541511bf8e6457bf",
+      "fissile/kernels/tensorfold.py": "f9830640d112592a8cc40f3eeeed976498c1bb23328b18cb77fd3b02e9a28a13",
+      "fissile/models/__init__.py": "31404ab9afd7bcabbd537c1a176817a9f0d1c114e1f98bf9c5803a9d3965ed3c",
+      "fissile/models/qwen35.py": "4e94bc0abf74eec25a65c22345e5c2a740beae386a762a6fceb36e7668bff31d",
+      "fissile/models/spec.py": "f3484986a79d444403be48a4a4c0f35150e5ed858cbfd7d57c38a7f863f6338b",
+      "fissile/providers/__init__.py": "68eef2e698b3a4e6fba64c0f959acae9efe862a5f9eff75d1865f1b2d803a364",
+      "fissile/providers/gb10.py": "ed2ee4d9ef9b822f3b7f0a847fdeb333251354702784a6acd202cd171edcafe1",
+      "fissile/quantization/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+      "fissile/quantization/gptq.py": "5e2f275b2a48e1fb6d582de4dfdadcabd7460690dfe7d4f23859ac25cd1ca9e9",
+      "fissile/quantization/gptq_stable.py": "04f08e0018d90212f6eb03af30252596e3c886de045e9853639ff1292d80e47a",
+      "fissile/quantization/mse.py": "596ac4722031d30aaaa814595b9a7e476b83b1ab162eb665ab6c6c5ecd270f81",
+      "fissile/quantization/prepare.py": "e2b00b59f467ce3d86a597daa73acf9e851480a6e9ffc0ebabe300e20a736f0f",
+      "fissile/recipes/__init__.py": "175d412119a55ff8a14222165c5544068ae8c22dade1ddb31e515aa1c7a01e08",
+      "fissile/runtime/__init__.py": "c99b2a9214047a7d0f3f7ab2efdf189002823c158f8254eb5c2041fe4e6b0b17",
+      "fissile/runtime/mixed.py": "fe75ed2262b0aae3905fd8e0176d8048b9b3b877fbbe3f9ff9fc0179073f594d"
+    }
+  },
+  "evidence": {
+    "records_sha256": "4b6190642de5c9e62b202a780ae994e15dea2926f7bbf3426c18f8c67d36bd61",
+    "audit_sha256": "e2f8b92dce137700a6ab318f7109df1c335d806a94c6af5555883678bab54665",
+    "csv_sha256": "22e620f22328ed634423a4b8078c09c1b09a58ed56d2a687e446c35ffdf2bdf6",
+    "executed_runner_sha256": "82302e26c301e5704183a874fe601d33542e5919cc0870dc8f7952e44c977687",
+    "inputs_sha256": "ed2956e6819e2d8cbfcc7f0417ce9f283b0acea2cf99703243abf8ec6f17f276",
+    "projection_boundaries_sha256": "0d6dfdd5fe3e361e3bd4086aea12cc89dbe6ee46c68b601f0d5ed1fb8fe73b60"
+  },
+  "limitations": [
+    "ScopeJudge measures 346-2742-token prompts; not a new 27438-request full-suite run.",
+    "Incremental ratio compares mixed-precision implementations, not a concurrent BF16 control."
+  ],
+  "paired_bootstrap": {
+    "method": "Paired bootstrap by question, retaining all three rounds per question",
+    "resamples": 2000,
+    "seed": 20261031,
+    "percentile_95_interval": [
+      1.018210303108475,
+      1.0200102180097856
+    ],
+    "limitation": "Within-session sampling uncertainty only; not independent device/session replication"
+  },
+  "projection_boundary_check": {
+    "complete": true,
+    "kind": "projection-only synthetic activation boundary test",
+    "seed": 20261031,
+    "device": "NVIDIA GB10",
+    "capability": [
+      12,
+      1
+    ],
+    "lengths": [
+      1,
+      2,
+      15,
+      16,
+      17,
+      127,
+      128,
+      129,
+      1536,
+      1537,
+      2742,
+      4096,
+      8192,
+      16384
+    ],
+    "patterns": [
+      "normal",
+      "outliers",
+      "zeros"
+    ],
+    "real_weight_identities": {
+      "layers.0.linear_attn.in_proj_qkv": "21286bed37372105d182b20bc47c08e04e1fd3d3f0a968aa3af1f215ec7fb6a2",
+      "layers.0.linear_attn.in_proj_z": "d73ab8111d341b251988320567e213cb8d3be9359ce279e76eb2980609d94d90",
+      "layers.3.self_attn.q_proj": "0ed1a367620f41db251289ffb1729166d66c55a6ca0a856185b49ff595e6ea17",
+      "layers.3.self_attn.k_proj": "5ed4b1ea7ea025ec8661a40291224331ff84c9cbe71c16920d0d35e51571526e",
+      "layers.3.self_attn.v_proj": "bc11938382dce3e2d171231693ba66d4a86604faae4e9aa5ea395dbd12512e47"
+    },
+    "output_comparisons": 210,
+    "all_outputs_exact": true,
+    "script_sha256": "38f4576b809c8de2229acafe94e33e4dfd9748334702e403449e2d5906cd0b35"
+  }
+}

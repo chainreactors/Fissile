@@ -1,0 +1,262 @@
+{
+  "schema": "fissile-sglang-scope-benchmark-v1",
+  "date": "2026-10-31",
+  "complete": true,
+  "hardware": {
+    "gpu": "NVIDIA GB10",
+    "gpu_count": 1,
+    "unified_memory_gb": 128,
+    "driver": "580.178.04"
+  },
+  "software": {
+    "torch": "2.13.0+cu130",
+    "sglang": "0.5.21",
+    "transformers": "5.12.1",
+    "triton": "3.7.1",
+    "nvidia-cutlass-dsl": "4.8.0"
+  },
+  "model": "Qwen3.5-9B-derived merged checkpoint; same in both arms",
+  "adapter_sha256": "3e2f6ed172b69c166ff00333c00040f59581313915d42f16205c7fac316676cc",
+  "runtime_source_sha256": "da7db5ac0bfee2f0aaa84461d1930f7ff60f3b4cb7779c28b1cf505aabc2ea64",
+  "runtime_files": {
+    "src/fissile/__init__.py": "3d4bc0a01ec33067e3e9f53cfc2bc564b8ac0832885bef1dceffa58f102fdb9c",
+    "src/fissile/_vendor/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+    "src/fissile/_vendor/sm12x/LICENSE.flashinfer": "cb67c224f503e0a063908950b12f89a7280c6e527dcffac972aa114e4bf3c5de",
+    "src/fissile/_vendor/sm12x/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+    "src/fissile/_vendor/sm12x/register_paired.py": "bb0ddb3033b26beed15164d49279c060a9d59930be2715ca58a6fe47fec589bb",
+    "src/fissile/_vendor/sm12x/scale_layout.py": "24261069218f5c83e4214520244edf6736b1fa90cd20e208a273a1a8f20f1b08",
+    "src/fissile/_vendor/tensorfold/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "src/fissile/_vendor/tensorfold/LICENSE.MIT.txt": "be6a9ee4462784a762b21790954b8e76c4dcacc9fb6da2a40d03a8a9bddec93e",
+    "src/fissile/_vendor/tensorfold/NOTICE": "74b59811a5ebc3c28e7fc89f8f189854b6ca6d44392a98394950b24ba3c1b8e7",
+    "src/fissile/_vendor/tensorfold/THIRD_PARTY_NOTICES.md": "7465567114dab50f97f964aa35a627f0ab8b72c6d59a3c0746493612cc69af9d",
+    "src/fissile/_vendor/tensorfold/prompt16.cu": "13c24ebf15ad912d62f8830d59cbfa7c9fce0c76112dac3c84cffce7fc671b26",
+    "src/fissile/_vendor/tensorfold/qmm_frag.cuh": "e8030c07c2926ecdc15d71a6e13591a43dac524cd3aa85e388cfafc746bf4c07",
+    "src/fissile/artifacts.py": "68c6d76e831d9760365b218d1410a0c4d080298676de7f49fd4dc573779c342e",
+    "src/fissile/backends/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+    "src/fissile/backends/contracts.py": "2608d430e05b5ecea4fd449e8612f2b15b8878f1f0af835746d4c9e95ea11667",
+    "src/fissile/backends/registry.py": "8dbc9ef203e1399d24e3c4a181df78289fb576efc4675529d53202eca616dce5",
+    "src/fissile/backends/sglang/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+    "src/fissile/backends/sglang/engine.py": "f1a1683ae007c788a232c32d2180a0abd79b5c27246c801272a071b7b6c79ee2",
+    "src/fissile/backends/sglang/model.py": "6c4208d491999c76dac28232a90a8683a86cb46915e7989cc8736f2270328a08",
+    "src/fissile/backends/torch.py": "64d9de08490408e6ecbbb8c5285fed45a9e255fefd5dbff1321908019f95cb97",
+    "src/fissile/backends/torch_pointwise.py": "63e1a3cf9bae740208e9411cd692e23730f4bf02fee71be9bbf7561d0064bbdf",
+    "src/fissile/build.py": "ed0ed1b6df35160eb3ac485d17c0fe9dfb24dc03ec954a46a3298206c5371ef1",
+    "src/fissile/cli.py": "4b871ac4c4ed31607a756cb847d4a608fc7c8cba03970f80299f3e6d558c52b3",
+    "src/fissile/config.py": "c8224d0b0d0518a92493ed9eaa57a64600cd00802e89376bf594c8e99c49af43",
+    "src/fissile/kernels/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+    "src/fissile/kernels/fp4_codes.py": "19a909d21346a4796bf31a23cbdad0c3c2ae837fafa97575dd66d037bd8f16fb",
+    "src/fissile/kernels/fp8.py": "142b834afce2cf5f8b8865c5671e96932a7f6ebf08b04a585a4a8efc4182f71d",
+    "src/fissile/kernels/native_rms.py": "1723193a7d7639b644d20973ecd7839b87c6c1cc8c37cafefced18ef0faa6b97",
+    "src/fissile/kernels/nvfp4.py": "8b8b5a3ea17a148b968bc08953aa19d208160ce1c64745100eef787bc3c36f58",
+    "src/fissile/kernels/nvfp4_adaptive.py": "16bedb1a6d16c3f7f660f4b4de1cd41c99a2fb6bcf70f1f89c8950a3971045ce",
+    "src/fissile/kernels/nvfp4_fast.py": "9d063d98a3b06adcecb530a7d489a34e0340760ff38ade799c2c374f0941ee26",
+    "src/fissile/kernels/packs.py": "be0726bccb3dce236760adcf7d39f44049717931ede69052fe96910456c6356c",
+    "src/fissile/kernels/paired_glu.py": "6227b7f33dedf45e7fe881ab35b729266b108338710577635f039abdf88dd3d2",
+    "src/fissile/kernels/pointwise.py": "9087ba61e8338d4de33e5d64ffd9a1370eb55f4eab668200737b06227cc1a08f",
+    "src/fissile/kernels/tensorfold.cu": "7ddd45998ae8afdf8652309d8546610a404c564cf98f4227541511bf8e6457bf",
+    "src/fissile/kernels/tensorfold.py": "f9830640d112592a8cc40f3eeeed976498c1bb23328b18cb77fd3b02e9a28a13",
+    "src/fissile/models/__init__.py": "31404ab9afd7bcabbd537c1a176817a9f0d1c114e1f98bf9c5803a9d3965ed3c",
+    "src/fissile/models/qwen35.py": "4e94bc0abf74eec25a65c22345e5c2a740beae386a762a6fceb36e7668bff31d",
+    "src/fissile/models/spec.py": "f3484986a79d444403be48a4a4c0f35150e5ed858cbfd7d57c38a7f863f6338b",
+    "src/fissile/providers/__init__.py": "68eef2e698b3a4e6fba64c0f959acae9efe862a5f9eff75d1865f1b2d803a364",
+    "src/fissile/providers/gb10.py": "d14eb9f9a906bacff4fd974d2261fd7871a6efebce36eb7b0de4056de6dca776",
+    "src/fissile/quantization/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
+    "src/fissile/quantization/gptq.py": "5e2f275b2a48e1fb6d582de4dfdadcabd7460690dfe7d4f23859ac25cd1ca9e9",
+    "src/fissile/quantization/gptq_stable.py": "04f08e0018d90212f6eb03af30252596e3c886de045e9853639ff1292d80e47a",
+    "src/fissile/quantization/mse.py": "596ac4722031d30aaaa814595b9a7e476b83b1ab162eb665ab6c6c5ecd270f81",
+    "src/fissile/quantization/prepare.py": "e2b00b59f467ce3d86a597daa73acf9e851480a6e9ffc0ebabe300e20a736f0f",
+    "src/fissile/recipes/__init__.py": "175d412119a55ff8a14222165c5544068ae8c22dade1ddb31e515aa1c7a01e08",
+    "src/fissile/runtime/__init__.py": "c99b2a9214047a7d0f3f7ab2efdf189002823c158f8254eb5c2041fe4e6b0b17",
+    "src/fissile/runtime/mixed.py": "5c64207d5a280cf53c174ba844b976dd5f4dbe080c1da5b5b4fac45b6e95eedf"
+  },
+  "benchmark_script_sha256": "086c1575b2e15d0c5900b11ac1b550342ebe89f44b44120513e3c1e087e647aa",
+  "executed_timing_script_sha256": "b9d23594abe7f6036ff23b9a99ab6c5a04b1d4609e067bcb2072b7555772d50e",
+  "timed_worker_ast_verified_equal": true,
+  "inputs": {
+    "dataset": "ScopeJudge",
+    "unique_requests": 1043,
+    "input_tokens_per_round": 557077,
+    "min_tokens": 346,
+    "max_tokens": 2742,
+    "mean_tokens": 534.1102588686481,
+    "classes": {
+      "in_scope": 985,
+      "out_of_scope": 58
+    },
+    "sha256": "ed2956e6819e2d8cbfcc7f0417ce9f283b0acea2cf99703243abf8ec6f17f276"
+  },
+  "protocol": {
+    "rounds": 3,
+    "warmup_passes_per_arm": 1,
+    "random_seed": 20261031,
+    "arm_order": "Alternating per input; parity reversed each round",
+    "resident_engines": 2,
+    "concurrent_gpu_calls": 1,
+    "batch_size": 1,
+    "generated_tokens": 0,
+    "timing": "CheckedSession.score only; includes SGLang IPC, excludes external worker IPC, tokenization, decoding, startup and warmup"
+  },
+  "settings": {
+    "dtype": "bfloat16",
+    "context_length": 16384,
+    "disable_radix_cache": true,
+    "cuda_graph_backend_decode": "disabled",
+    "cuda_graph_backend_prefill": "disabled",
+    "chunked_prefill_size": -1,
+    "mem_fraction_static": 0.35,
+    "max_running_requests": 1,
+    "max_total_tokens": 32768,
+    "max_prefill_tokens": 16384,
+    "attention_backend": "triton",
+    "linear_attn_backend": "triton",
+    "linear_attn_prefill_backend": "triton",
+    "mamba_backend": "triton",
+    "mamba_ssm_dtype": "float32",
+    "log_level": "warning"
+  },
+  "metrics": {
+    "bf16": {
+      "requests": 3129,
+      "unique_requests": 1043,
+      "rounds": 3,
+      "sum_seconds": 434.73127234820276,
+      "mean_ms": 138.9361688552901,
+      "p50_ms": 129.88863000646234,
+      "p95_ms": 202.6615931186825,
+      "requests_per_second": 7.197549840614625,
+      "input_tokens_per_second": 3844.2852085906743,
+      "per_round": [
+        {
+          "round": 0,
+          "correct": 1002,
+          "accuracy": 0.9606903163950143,
+          "balanced_accuracy": 0.8331524593033433,
+          "classes": {
+            "in_scope": {
+              "count": 985,
+              "correct": 962
+            },
+            "out_of_scope": {
+              "count": 58,
+              "correct": 40
+            }
+          },
+          "sum_seconds": 145.1192609167192
+        },
+        {
+          "round": 1,
+          "correct": 1002,
+          "accuracy": 0.9606903163950143,
+          "balanced_accuracy": 0.8331524593033433,
+          "classes": {
+            "in_scope": {
+              "count": 985,
+              "correct": 962
+            },
+            "out_of_scope": {
+              "count": 58,
+              "correct": 40
+            }
+          },
+          "sum_seconds": 144.7916860524565
+        },
+        {
+          "round": 2,
+          "correct": 1002,
+          "accuracy": 0.9606903163950143,
+          "balanced_accuracy": 0.8331524593033433,
+          "classes": {
+            "in_scope": {
+              "count": 985,
+              "correct": 962
+            },
+            "out_of_scope": {
+              "count": 58,
+              "correct": 40
+            }
+          },
+          "sum_seconds": 144.82032537902705
+        }
+      ],
+      "inconsistent_labels_across_rounds": 0
+    },
+    "mixed": {
+      "requests": 3129,
+      "unique_requests": 1043,
+      "rounds": 3,
+      "sum_seconds": 206.78275484754704,
+      "mean_ms": 66.08589160995432,
+      "p50_ms": 57.32221179641783,
+      "p95_ms": 96.89426352269948,
+      "requests_per_second": 15.13182277848504,
+      "input_tokens_per_second": 8082.061781371151,
+      "per_round": [
+        {
+          "round": 0,
+          "correct": 999,
+          "accuracy": 0.9578139980824545,
+          "balanced_accuracy": 0.7991773148958516,
+          "classes": {
+            "in_scope": {
+              "count": 985,
+              "correct": 963
+            },
+            "out_of_scope": {
+              "count": 58,
+              "correct": 36
+            }
+          },
+          "sum_seconds": 68.81811599479988
+        },
+        {
+          "round": 1,
+          "correct": 999,
+          "accuracy": 0.9578139980824545,
+          "balanced_accuracy": 0.7991773148958516,
+          "classes": {
+            "in_scope": {
+              "count": 985,
+              "correct": 963
+            },
+            "out_of_scope": {
+              "count": 58,
+              "correct": 36
+            }
+          },
+          "sum_seconds": 68.91298363404348
+        },
+        {
+          "round": 2,
+          "correct": 999,
+          "accuracy": 0.9578139980824545,
+          "balanced_accuracy": 0.7991773148958516,
+          "classes": {
+            "in_scope": {
+              "count": 985,
+              "correct": 963
+            },
+            "out_of_scope": {
+              "count": 58,
+              "correct": 36
+            }
+          },
+          "sum_seconds": 69.05165521870367
+        }
+      ],
+      "inconsistent_labels_across_rounds": 0
+    }
+  },
+  "speedup": 2.1023574846399224,
+  "accuracy_change_pp": -0.28763183125598557,
+  "balanced_accuracy_change_pp": -3.397514440749161,
+  "verification": {
+    "raw_records_sha256": "7cf8b516bad198b02a969c7e82919e4a8842d730b3ac3be91b4e8e535783bdb7",
+    "audit_sha256": "2c9479ab0425b8bc8bb13a0f1d3552151dab67c18bf03c41ac90da7ea6a74276",
+    "public_csv_sha256": "9f6d2ad75cb87f4a6867e0e42c39451c7bdbf0aff3acad161dccca154a9d6462",
+    "input_identity_verified": true,
+    "effective_weight_identities_verified": 201,
+    "all_projection_paths_verified": true,
+    "labels_identical_across_rounds": true
+  },
+  "readout": "Four-decimal candidate probabilities; lexical-first argmax tie break; independently decoded from raw scores."
+}
