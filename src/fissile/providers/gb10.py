@@ -9,6 +9,7 @@ from fissile.kernels.fp8 import quantize_fp8
 from fissile.kernels.tensorfold import TensorFoldW4A16, repack
 from fissile.kernels.paired_glu import RegisterPairedGLU, pair_weights
 from fissile.kernels.pointwise import silu_mul
+from fissile.runtime.graph import VALID_ROWS
 
 
 class GB10Provider:
@@ -43,7 +44,7 @@ class GB10Provider:
             or x.dtype != torch.bfloat16
         ):
             raise ValueError("Expected CUDA BF16 activations")
-        return x.reshape(-1, x.shape[-1]).contiguous()
+        return VALID_ROWS.mask(x.reshape(-1, x.shape[-1]).contiguous())
 
     def _prepared_projection(self, route, weight, packed):
         """Return compute(activation, rows, out=None).

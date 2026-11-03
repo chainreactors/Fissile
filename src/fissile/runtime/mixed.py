@@ -222,6 +222,25 @@ class MixedRuntime:
         if delta.pop("lm_head") != head or set(delta.values()) != {body}:
             raise RuntimeError("Projection bypass or unexpected extra execution")
 
+    def validate_pass(self, before):
+        """Check one outer forward against counters taken just before it.
+
+        The output head runs eagerly exactly once. The transformer body either ran
+        eagerly (every body projection once) or was replayed from a captured
+        prefill graph (no Python execution); a replay is accepted only if every
+        Python-observed body pass, including capture, covered all projections.
+        Returns "eager" or "graph_replay".
+        """
+        if set(self.calls) != set(self.expected_routes) or set(before) != set(self.calls):
+            raise RuntimeError("Projection bypass or unexpected extra execution")
+        delta = {k: self.calls[k] - before[k] for k in self.calls}
+        if delta.pop("lm_head") != 1:
+            raise RuntimeError("Projection bypass or unexpected extra execution")
+        body = set(delta.values())
+        if body not in ({1}, {0}) or len({self.calls[k] for k in delta}) != 1:
+            raise RuntimeError("Projection bypass or unexpected extra execution")
+        return "eager" if body == {1} else "graph_replay"
+
     def validate_forward(self, count):
         if set(self.calls) != set(self.expected_routes) or set(self.calls.values()) != {
             count

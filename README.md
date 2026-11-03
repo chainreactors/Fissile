@@ -32,6 +32,8 @@ batch size 1. Full evaluation suite: 27,438 requests, 29,182 questions.
   W4A4 projection, bitwise equal to the cuBLAS path.
 - **Candidate-only readout** (`sglang-candidates`): the output head computes
   only the requested candidate tokens.
+- **Prefill CUDA graph** (SGLang, opt-in): replays the transformer body for
+  inputs up to 4,096 tokens.
 - **Engine adapters**: SGLang and vLLM model adapters and a reversible PyTorch
   overlay share one runtime and scoring API.
 - **Artifact integrity**: manifests with effective-weight hashes, packed-file

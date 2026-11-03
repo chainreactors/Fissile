@@ -12,12 +12,20 @@ def main():
     p.add_argument("--inputs", required=True)
     p.add_argument("--output", required=True)
     p.add_argument("--backend", default="sglang", choices=("sglang", "sglang-candidates", "vllm"))
+    p.add_argument(
+        "--prefill-cuda-graph",
+        action="store_true",
+        help="Replay prefill from SGLang's breakable CUDA graph (see docs/architecture.md)",
+    )
     a = p.parse_args()
     output = Path(a.output)
     if output.exists():
         raise FileExistsError(output)
     rows = [json.loads(line) for line in Path(a.inputs).open()]
-    with open_backend(a.backend, a.config, a.model) as session, output.open("x") as f:
+    options = {"prefill_cuda_graph": True} if a.prefill_cuda_graph else {}
+    if options and a.backend == "vllm":
+        p.error("--prefill-cuda-graph applies to the SGLang backends")
+    with open_backend(a.backend, a.config, a.model, **options) as session, output.open("x") as f:
         for r in rows:
             start = time.perf_counter()
             result = session.score(r["input_ids"], r["candidate_token_ids"])

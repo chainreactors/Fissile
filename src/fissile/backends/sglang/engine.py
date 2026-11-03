@@ -23,9 +23,27 @@ def resource_settings(environ=None):
 
 READOUTS = ("full", "candidates")
 
+# Token-count buckets for the optional breakable prefill graph. 1,536 is a bucket
+# boundary so padding never moves an input from the paired GLU kernel to the
+# long-input path. Longer inputs run eagerly.
+PREFILL_GRAPH_BUCKETS = (
+    (16, 32, 48, 64, 96, 128, 160, 192, 224, 256)
+    + tuple(range(320, 1537, 64))
+    + tuple(range(1664, 4097, 128))
+)
+
+
+def prefill_graph_settings(enabled):
+    if not enabled:
+        return {"cuda_graph_backend_prefill": "disabled"}
+    return {
+        "cuda_graph_backend_prefill": "breakable",
+        "cuda_graph_bs_prefill": list(PREFILL_GRAPH_BUCKETS),
+    }
+
 
 @contextmanager
-def scoring_engine(config, model_path, *, readout="full"):
+def scoring_engine(config, model_path, *, readout="full", prefill_cuda_graph=False):
     if readout not in READOUTS:
         raise ValueError("Unknown readout: " + str(readout))
     config = Path(config).resolve()
@@ -56,7 +74,7 @@ def scoring_engine(config, model_path, *, readout="full"):
             context_length=context_length + 7,
             disable_radix_cache=True,
             cuda_graph_backend_decode="disabled",
-            cuda_graph_backend_prefill="disabled",
+            **prefill_graph_settings(prefill_cuda_graph),
             chunked_prefill_size=-1,
             **resources,
             max_running_requests=1,
@@ -90,13 +108,15 @@ def scoring_engine(config, model_path, *, readout="full"):
 
 
 @contextmanager
-def open_session(config, model, *, readout="full"):
+def open_session(config, model, *, readout="full", prefill_cuda_graph=False):
     """Common backend contract; this adapter owns the SGLang engine.
 
     ``readout="full"`` returns full-vocabulary log probabilities. ``"candidates"``
     computes logits for the requested candidate tokens only, so the returned
     log probabilities are normalized over the candidates; their softmax (the
-    decision) is mathematically unchanged.
+    decision) is mathematically unchanged. ``prefill_cuda_graph=True`` replays
+    the transformer body from SGLang's breakable prefill graph for inputs up to
+    4,096 tokens; see docs/architecture.md before enabling it.
     """
     from fissile.backends.contracts import Score
 
@@ -115,12 +135,16 @@ def open_session(config, model, *, readout="full"):
             )
             return Score(tuple(result.token_logprobs[0]), result.prompt_tokens)
 
-    with scoring_engine(config, model, readout=readout) as engine:
+    with scoring_engine(
+        config, model, readout=readout, prefill_cuda_graph=prefill_cuda_graph
+    ) as engine:
         yield Session(engine)
 
 
 @contextmanager
-def open_candidate_session(config, model):
+def open_candidate_session(config, model, *, prefill_cuda_graph=False):
     """Candidate-normalized log probabilities; decisions match ``open_session``."""
-    with open_session(config, model, readout="candidates") as session:
+    with open_session(
+        config, model, readout="candidates", prefill_cuda_graph=prefill_cuda_graph
+    ) as session:
         yield session

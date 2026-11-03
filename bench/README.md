@@ -1,7 +1,7 @@
 # Benchmarks
 
-All measurements use one NVIDIA GB10 (SM121, 128 GB unified memory, driver
-580.178.04, CUDA 13.0), Python 3.12, Torch 2.13.0+cu130, SGLang 0.5.21,
+Unless noted, measurements use one NVIDIA GB10 (SM121, 128 GB unified memory,
+driver 580.178.04, CUDA 13.0), Python 3.12, Torch 2.13.0+cu130, SGLang 0.5.21,
 Transformers 5.12.1, Triton 3.7.1 and CuTe DSL 4.8.0.
 
 Workload: dense Qwen3.5-9B-derived merged checkpoint, all 32 layers, complete
@@ -95,6 +95,19 @@ probability difference is 0.040 (maximum 0.331). Both providers give identical
 vLLM results, and repeated vLLM runs are bitwise identical.
 
 [Results](results/gb10-vllm-scope.json)
+
+## SGLang: prefill CUDA graph
+
+`prefill_cuda_graph=True` compared with eager prefill on 1,043 ScopeJudge
+questions (mean 534 tokens), 64 concurrent requests through an HTTP gateway.
+
+| Provider | Device | GPU busy, eager | Throughput, graph vs eager | Questions with different scores |
+|---|---|---:|---:|---:|
+| `sm120-mixed-v1` | RTX 5090 D | about 22% | about 3× | 0 of 24 fixed probes¹ |
+| `gb10-mixed-v1` | GB10 | about 89% | 0.99× | 260 of 1,043 (5 decisions) |
+| `gb10-mixed-v2` | GB10 | about 90% | 0.96× | 260 of 1,043 (5 decisions) |
+
+¹ The full question set was not scored on SM120.
 
 ## Reproduce
 

@@ -43,11 +43,16 @@ every projection against the manifest, then installs Fissile projection methods
 and paired MLPs. Same-input projections share one activation pack per call and
 write into column slices of one output buffer. SGLang keeps its attention,
 normalization and recurrent-state kernels. The scoring engine runs
-single-request complete prefill with batching, CUDA graphs, chunked prefill and
-radix caching disabled. The paired GLU kernel serves inputs up to 1,536 rows;
-longer inputs use separate gate/up GEMMs and Torch SiLU. The
+single-request complete prefill with batching, chunked prefill, radix caching
+and, by default, CUDA graphs disabled. The paired GLU kernel serves inputs up to
+1,536 rows; longer inputs use separate gate/up GEMMs and Torch SiLU. The
 `sglang-candidates` backend computes the output head only for the requested
 candidate tokens.
+
+Prefill CUDA graphs are off by default. `open_backend(..., prefill_cuda_graph=True)`
+or `--prefill-cuda-graph` in `examples/score_sglang.py` replays the transformer
+body from SGLang's breakable prefill graph for inputs up to 4,096 tokens; longer
+inputs run eagerly. [Measurements](../bench/README.md#sglang-prefill-cuda-graph).
 
 **vLLM.** The adapter registers a Qwen3.5 model class that installs the same
 Fissile projections and paired MLPs after vLLM loads the checkpoint. The engine

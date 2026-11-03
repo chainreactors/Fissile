@@ -63,7 +63,7 @@ def describe_backends():
 
 
 @contextmanager
-def open_backend(name, config, model):
+def open_backend(name, config, model, **options):
     from fissile.config import Config
     from pathlib import Path
 
@@ -74,7 +74,7 @@ def open_backend(name, config, model):
     spec = get_backend(name)
     spec.validate(cfg)
     module, symbol = spec.factory.split(":", 1)
-    with getattr(import_module(module), symbol)(config, model) as session:
+    with getattr(import_module(module), symbol)(config, model, **options) as session:
         checked = CheckedSession(session, cfg.plan.profile)
         try:
             yield checked

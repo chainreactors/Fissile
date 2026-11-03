@@ -6,6 +6,7 @@ from types import MethodType
 import torch
 from sglang.srt.models.qwen3_5 import Qwen3_5ForConditionalGeneration as Original
 from fissile.runtime.mixed import MixedRuntime
+from fissile.runtime.graph import VALID_ROWS
 
 
 class PackedMethod:
@@ -109,6 +110,7 @@ class Qwen3_5ForConditionalGeneration(Original):
         self._fissile_candidates = None
         self._fissile_runtime = runtime
         self._fissile_forwards = 0
+        VALID_ROWS.allocate(self.lm_head.weight.device)
         report = runtime.validate_coverage()
         report["engine"] = "sglang"
         report["readout"] = readout
@@ -129,6 +131,14 @@ class Qwen3_5ForConditionalGeneration(Original):
             )
         requested = getattr(forward_batch, "token_ids_logprobs", None)
         self._fissile_candidates = requested[0] if requested else None
+        # Under prefill graph replay input_ids are padded to a bucket; the live
+        # length comes from the batch metadata.
+        live = getattr(forward_batch, "extend_seq_lens_cpu", None)
+        live = int(live[0]) if live is not None and len(live) else len(input_ids)
+        if not 1 < live <= len(input_ids):
+            raise ValueError(f"Live token count {live} outside input of {len(input_ids)}")
+        VALID_ROWS.publish(live)
+        before = dict(self._fissile_runtime.calls)
         try:
             result = super().forward(
                 input_ids, positions, forward_batch, *args, **kwargs
@@ -136,7 +146,7 @@ class Qwen3_5ForConditionalGeneration(Original):
         finally:
             self._fissile_candidates = None
         self._fissile_forwards += 1
-        self._fissile_runtime.validate_forward(self._fissile_forwards)
+        mode = self._fissile_runtime.validate_pass(before)
         if self._fissile_forwards == 1:
             out = self._fissile_runtime.config.report_dir
             with (out / "first-forward-coverage.json").open("x") as f:
@@ -144,6 +154,7 @@ class Qwen3_5ForConditionalGeneration(Original):
                     {
                         "complete": True,
                         "all_projections_executed": True,
+                        "mode": mode,
                         "expected_projections": len(
                             self._fissile_runtime.profile.projections
                         ),
