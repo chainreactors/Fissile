@@ -49,6 +49,25 @@ excluding loading and preparation.
 
 [Results and per-panel accuracy](results/gb10-pytorch-full.json)
 
+## vLLM: full evaluation suite
+
+vLLM 0.29.0 with Transformers 5.17.0; other software as above. Same protocol as
+SGLang: BF16 is plain vLLM with the engine settings of the `vllm` backend. vLLM
+samples one transport token per question in both arms.
+
+| Execution | Accuracy | Mean latency | Speedup |
+|---|---:|---:|---:|
+| vLLM BF16 | 76.42% (22,300) | 155.34 ms | 1.00× |
+| Fissile `gb10-mixed-v2` | 74.69% (21,797) | 79.73 ms | **1.95×** |
+
+| Question type | BF16 | `gb10-mixed-v2` |
+|---|---:|---:|
+| choice (24,639) | 76.38% | 74.54% |
+| noul (3,629) | 80.96% | 80.35% |
+| score (914) | 59.41% | 56.24% |
+
+[Results](results/gb10-vllm-full.json)
+
 ## SGLang: ScopeJudge
 
 1,043 questions, 346–2,742 tokens (mean 534). Both engines resident; one
@@ -133,6 +152,7 @@ policy lists allowed hostnames in `mainline_compute_hosts`. Paired runs need
 |---|---|
 | [gb10-sglang-full.json](results/gb10-sglang-full.json) | SGLang full suite |
 | [gb10-pytorch-full.json](results/gb10-pytorch-full.json) | PyTorch full suite, per panel |
+| [gb10-vllm-full.json](results/gb10-vllm-full.json) | vLLM full suite |
 | [gb10-scope.json](results/gb10-scope.json) · [csv](results/gb10-scope.csv) | ScopeJudge BF16 vs Fissile |
 | [gb10-activation-reuse.json](results/gb10-activation-reuse.json) · [csv](results/gb10-activation-reuse.csv) | Shared activation packing |
 | [gb10-spark-optimization.json](results/gb10-spark-optimization.json) · [csv](results/gb10-spark-optimization.csv) | Grouped output, pinned GEMM |

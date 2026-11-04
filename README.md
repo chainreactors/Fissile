@@ -16,6 +16,8 @@ batch size 1. Full evaluation suite: 27,438 requests, 29,182 questions.
 |---|---|---:|---:|---:|
 | SGLang | BF16 | 76.38% | 137.11 ms | 1.00× |
 | SGLang | Fissile `gb10-mixed-v2`, candidate readout | 75.18% | 56.43 ms | **2.43×** |
+| vLLM | BF16 | 76.42% | 155.34 ms | 1.00× |
+| vLLM | Fissile `gb10-mixed-v2` | 74.69% | 79.73 ms | **1.95×** |
 | PyTorch | BF16 | 76.31% | 235.00 ms | 1.00× |
 | PyTorch | Fissile | 74.72% | 66.07 ms | **3.56×** |
 

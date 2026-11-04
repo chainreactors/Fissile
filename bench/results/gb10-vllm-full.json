@@ -1,0 +1,39 @@
+{
+ "schema": "fissile-vllm-full-suite-v1",
+ "date": "2026-11-04",
+ "hardware": "NVIDIA GB10 (SM121), 128 GB unified memory; CUDA 13.0",
+ "software": "Torch 2.13.0+cu130, vLLM 0.29.0, Transformers 5.17.0, Triton 3.7.1, CuTe DSL 4.8.0",
+ "protocol": "One engine per device; 48-request warm-up, then one timed pass over every question. Timing: CheckedSession.score (Fissile) or the same vLLM generate call (BF16); one transport token per question.",
+ "decision": "Four-decimal candidate probabilities, lexical tie break (scripts/benchmark_sglang.py decode_choice)",
+ "questions": 29182,
+ "arms": {
+  "bf16": {
+   "engine": "vLLM 0.29.0",
+   "backend": null,
+   "accuracy": 0.7641696936467686,
+   "correct": 22300,
+   "mean_ms": 155.3350440893424,
+   "speedup_vs_bf16": 1.0,
+   "accuracy_by_type": {
+    "choice": 0.7637891148179715,
+    "score": 0.5940919037199125,
+    "noul": 0.8095894185726096
+   },
+   "records_sha256": "361e7d177d8f36785020dcc191388ef2fdce4cf7ffe6164e75cfb99d8e1139d7"
+  },
+  "gb10-mixed-v2": {
+   "engine": "vLLM 0.29.0",
+   "backend": "vllm",
+   "accuracy": 0.746933040915633,
+   "correct": 21797,
+   "mean_ms": 79.72733158900398,
+   "speedup_vs_bf16": 1.9483286470704642,
+   "accuracy_by_type": {
+    "choice": 0.7454442144567556,
+    "score": 0.562363238512035,
+    "noul": 0.8035271424634886
+   },
+   "records_sha256": "9bf4852abc50b648eea835880497ad6c4a8984b1cec8006817d24d69181d0276"
+  }
+ }
+}
