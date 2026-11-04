@@ -5,21 +5,22 @@ from types import MethodType
 
 
 def modules_for(model, profile):
+    from .layouts import get_layout
+
+    layout = get_layout(profile.name)
     expected = profile.shapes()
     modules = {}
     for name, leaf in model.named_modules():
-        if name == "lm_head":
-            key = name
-        elif name.startswith("model.language_model."):
-            key = name[len("model.language_model.") :]
+        if name == layout.hf_head:
+            key = profile.head
+        elif name.startswith(layout.hf_prefix):
+            key = name[len(layout.hf_prefix) :]
         else:
             continue
         if key in expected:
             modules[key] = leaf
     if set(modules) != set(expected):
-        raise ValueError(
-            "Only the merged HF dense Qwen3.5 conditional-generation layout is supported"
-        )
+        raise ValueError(f"Model modules do not match the {profile.name} layout")
     return modules
 
 
@@ -28,6 +29,7 @@ def optimized(model, config):
     import torch
     from fissile.runtime.mixed import MixedRuntime
     from .torch_pointwise import pointwise_fusion
+    from .layouts import get_layout
 
     if model.training or any(p.requires_grad for p in model.parameters()):
         raise ValueError("Requires model.eval().requires_grad_(False)")
@@ -36,6 +38,7 @@ def optimized(model, config):
 
     get_backend("torch").validate(runtime.config)
     modules = modules_for(model, runtime.profile)
+    layout = get_layout(runtime.profile.name)
     if any(
         not isinstance(m, torch.nn.Linear) or m.bias is not None
         for m in modules.values()
@@ -72,7 +75,7 @@ def optimized(model, config):
             prefix = group.prefix
             parts = [modules[k].weight for k in group.keys]
             apply = runtime.mlp(prefix, *parts, long_silu="rounded")
-            mlp = model.get_submodule("model.language_model." + prefix)
+            mlp = model.get_submodule(layout.hf_prefix + prefix)
 
             def forward(this, x, _fn=apply):
                 if torch.is_grad_enabled() or this.training:

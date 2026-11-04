@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 from fissile.config import Config
 
-ARCHITECTURE = "Qwen3_5ForConditionalGeneration"
 # vLLM returns log probabilities for at most this many requested token IDs.
 MAX_CANDIDATES = 128
 
@@ -67,9 +66,10 @@ def scoring_engine(config, model_path):
     engine = None
     try:
         from vllm import LLM, ModelRegistry
-        from fissile.backends.vllm.model import Qwen3_5ForConditionalGeneration
+        from fissile.backends.vllm.model import MODELS
 
-        ModelRegistry.register_model(ARCHITECTURE, Qwen3_5ForConditionalGeneration)
+        for architecture, cls in MODELS.items():
+            ModelRegistry.register_model(architecture, cls)
         engine = LLM(**engine_settings(model_path, cfg.plan.profile.max_context))
         yield engine
     finally:

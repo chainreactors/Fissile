@@ -14,7 +14,8 @@ quantization -> kernels
 | `recipes/` | Role-to-precision routing, fusion policy and preparation contract |
 | `providers/` | Kernel providers: capabilities, resources and numerical implementations |
 | `runtime/` | Weight identity checks, canonical binding and execution coverage |
-| `backends/` | Engine adapters: engine layout, resource lifecycle and scoring sessions |
+| `backends/layouts.py` | Engine module layout of each model profile, shared by all adapters |
+| `backends/` | Engine adapters: resource lifecycle and scoring sessions |
 | `kernels/` | Tensor math: NVFP4/FP8 packing, GEMMs, paired GLU, W4A16 head |
 | `quantization/` | Offline GPTQ projection preparation |
 
@@ -26,11 +27,14 @@ before importing engine code. Core imports and backend discovery are CPU-only.
 
 ## Kernel providers
 
-| Provider | W4A4 GEMM | Resources |
-|---|---|---|
-| `gb10-mixed-v1` | cuBLAS (`torch._scaled_mm_v2`) | TensorFold library, SiLU table |
-| `gb10-mixed-v2` | Pinned CUTLASS SM121 kernel | TensorFold library, SiLU table, FP4 GEMM library |
-| `sm120-mixed-v1` | cuBLAS | TensorFold library, SiLU table |
+| Provider | W4A4 GEMM | Paired MLP rows | Resources |
+|---|---|---:|---|
+| `gb10-mixed-v1` | cuBLAS (`torch._scaled_mm_v2`) | 1,536 | TensorFold library, SiLU table |
+| `gb10-mixed-v2` | Pinned CUTLASS SM121 kernel | 1,536 | TensorFold library, SiLU table, FP4 GEMM library |
+| `sm120-mixed-v1` | cuBLAS | 1,536 | TensorFold library, SiLU table |
+
+Each provider declares `paired_mlp_max_rows`: inputs up to that many rows use
+the paired gate/up kernel, longer inputs separate gate/up GEMMs.
 
 All providers implement the same recipe: NVFP4 W4A4 body projections, FP8
 rowwise full-attention K/V, a TensorFold NVFP4 W4A16 output head and paired
@@ -44,8 +48,8 @@ and paired MLPs. Same-input projections share one activation pack per call and
 write into column slices of one output buffer. SGLang keeps its attention,
 normalization and recurrent-state kernels. The scoring engine runs
 single-request complete prefill with batching, chunked prefill, radix caching
-and, by default, CUDA graphs disabled. The paired GLU kernel serves inputs up to
-1,536 rows; longer inputs use separate gate/up GEMMs and Torch SiLU. The
+and, by default, CUDA graphs disabled. Inputs longer than the provider's
+paired MLP row limit use separate gate/up GEMMs and Torch SiLU. The
 `sglang-candidates` backend computes the output head only for the requested
 candidate tokens.
 

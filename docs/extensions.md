@@ -58,11 +58,60 @@ Every binding verifies the effective weight against the manifest hash. Import
 the registration module before calling `open_backend`, including in spawned
 worker processes.
 
+Engines that store several projections in one linear module (SGLang, vLLM) call
+`fissile.backends.layouts.install_fused(runtime, language_model, engine="name")`,
+which binds every body projection of the profile from its layout; the adapter
+binds the output head (`runtime.profile.head`).
+
+## Add a model
+
+1. **Profile** (`models/`): canonical projection keys, shapes, roles (`body`,
+   `attention_kv`, `head`) and gated-MLP groups, registered with
+   `register_profile`.
+2. **Engine layout** (`backends/layouts.py`): where engines keep those
+   projections. One layout serves SGLang, vLLM and PyTorch.
+
+   ```python
+   from fissile.backends.layouts import FusedLinear, Layout, register_layout
+
+   register_layout(Layout(
+       profile="my-model",
+       layers="model.layers",   # decoder layers in the engine's language model
+       head="lm_head",          # output head in the engine's language model
+       mlp="mlp",               # gated MLP module in a decoder layer
+       linears=(
+           FusedLinear("mlp.gate_up_proj", ("mlp.gate_proj", "mlp.up_proj")),
+           FusedLinear("mlp.down_proj", ("mlp.down_proj",)),
+           FusedLinear("self_attn.qkv_proj",
+                       ("self_attn.q_proj", "self_attn.k_proj", "self_attn.v_proj")),
+           FusedLinear("self_attn.o_proj", ("self_attn.o_proj",)),
+       ),
+       hf_prefix="model.",      # Transformers module-name prefix
+       hf_head="lm_head",
+       paths={"sglang": {}},    # per-engine module path overrides
+   ))
+   ```
+
+3. **Engine model class**: combine the adapter mixin with the engine's model
+   class and list it in `EntryClass` (`backends/sglang/model.py`) or `MODELS`
+   (`backends/vllm/model.py`).
+
+   ```python
+   class MyModelForCausalLM(FissileModel, EngineMyModelForCausalLM):
+       pass
+   ```
+
+4. **Support and weights**: register a recipe and provider whose `profiles`
+   include the model, add the backend combinations, then prepare packs with
+   `prepare_projection` or import existing ones with
+   `fissile import-legacy --profile my-model --recipe my-recipe`.
+
 ## Other extension points
 
 | Extension | Interface |
 |---|---|
 | Model | `ModelProfile` + `register_profile` |
+| Engine module layout | `Layout` + `register_layout` |
 | Precision recipe | `Recipe` + `register_recipe` |
 | Kernel provider | `ProviderSpec` + `register_provider`, implementing `KernelProvider` |
 

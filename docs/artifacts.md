@@ -15,7 +15,8 @@ Fissile loads external artifacts; none are stored in this repository.
 
 ```bash
 # Validate existing packs and write a manifest
-fissile import-legacy --prepared /path/to/prepared-packs --output artifacts/manifest.json
+fissile import-legacy --prepared /path/to/prepared-packs --output artifacts/manifest.json \
+  [--profile qwen3.5-dense-9b] [--recipe mixed-fp4-fp8-w4a16-v1]
 # Copy validated packs into a portable directory
 fissile export-bundle --manifest artifacts/manifest.json --artifacts-dir /path/to/packs --output /path/to/bundle
 ```

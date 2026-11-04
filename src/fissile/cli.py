@@ -13,6 +13,8 @@ def main():
     )
     i.add_argument("--prepared", required=True)
     i.add_argument("--output", required=True)
+    i.add_argument("--profile", help="Model profile (default: qwen3.5-dense-9b)")
+    i.add_argument("--recipe", help="Precision recipe (default: mixed-fp4-fp8-w4a16-v1)")
     v = sub.add_parser(
         "validate", help="Verify every external packed weight and configuration"
     )
@@ -39,8 +41,15 @@ def main():
     a = p.parse_args()
     if a.command == "import-legacy":
         from .artifacts import import_legacy
+        from .models import DEFAULT_PROFILE
+        from .recipes import DEFAULT_RECIPE
 
-        m = import_legacy(a.prepared, a.output)
+        m = import_legacy(
+            a.prepared,
+            a.output,
+            a.profile or DEFAULT_PROFILE,
+            a.recipe or DEFAULT_RECIPE,
+        )
         print(json.dumps({"projections": len(m["projections"]), "manifest": a.output}))
     elif a.command == "validate":
         from .config import Config

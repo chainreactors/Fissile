@@ -23,9 +23,9 @@ def resource_settings(environ=None):
 
 READOUTS = ("full", "candidates")
 
-# Token-count buckets for the optional breakable prefill graph. 1,536 is a bucket
-# boundary so padding never moves an input from the paired GLU kernel to the
-# long-input path. Longer inputs run eagerly.
+# Token-count buckets for the optional breakable prefill graph; longer inputs run
+# eagerly. A provider's paired_mlp_max_rows must be a bucket boundary so padding
+# never moves an input from the paired GLU kernel to the long-input path.
 PREFILL_GRAPH_BUCKETS = (
     (16, 32, 48, 64, 96, 128, 160, 192, 224, 256)
     + tuple(range(320, 1537, 64))
@@ -33,9 +33,16 @@ PREFILL_GRAPH_BUCKETS = (
 )
 
 
-def prefill_graph_settings(enabled):
+def prefill_graph_settings(enabled, paired_mlp_max_rows=0):
     if not enabled:
         return {"cuda_graph_backend_prefill": "disabled"}
+    if (
+        0 < paired_mlp_max_rows < PREFILL_GRAPH_BUCKETS[-1]
+        and paired_mlp_max_rows not in PREFILL_GRAPH_BUCKETS
+    ):
+        raise ValueError(
+            f"paired_mlp_max_rows={paired_mlp_max_rows} is not a prefill graph bucket"
+        )
     return {
         "cuda_graph_backend_prefill": "breakable",
         "cuda_graph_bs_prefill": list(PREFILL_GRAPH_BUCKETS),
@@ -74,7 +81,10 @@ def scoring_engine(config, model_path, *, readout="full", prefill_cuda_graph=Fal
             context_length=context_length + 7,
             disable_radix_cache=True,
             cuda_graph_backend_decode="disabled",
-            **prefill_graph_settings(prefill_cuda_graph),
+            **prefill_graph_settings(
+                prefill_cuda_graph,
+                cfg.provider.paired_mlp_max_rows if prefill_cuda_graph else 0,
+            ),
             chunked_prefill_size=-1,
             **resources,
             max_running_requests=1,

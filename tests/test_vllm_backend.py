@@ -56,7 +56,7 @@ class VllmSettings(unittest.TestCase):
         registry = SimpleNamespace(register_model=lambda name, cls: calls.setdefault('registered', name))
         vllm = SimpleNamespace(LLM=LLM, ModelRegistry=registry, SamplingParams=lambda **k: k)
         inputs = SimpleNamespace(TokensPrompt=lambda **k: k)
-        model = SimpleNamespace(Qwen3_5ForConditionalGeneration=object)
+        model = SimpleNamespace(MODELS={'Qwen3_5ForConditionalGeneration': object})
         config = SimpleNamespace(plan=SimpleNamespace(profile=SimpleNamespace(max_context=16384)))
         with patch('fissile.backends.vllm.engine.Config.load', return_value=config), patch(
                 'fissile.backends.registry.get_backend', return_value=SimpleNamespace(validate=lambda _: None)), patch.dict(
@@ -83,6 +83,7 @@ class ValidateCounts(unittest.TestCase):
         keys = ['lm_head'] + ['layers.%d.p' % i for i in range(6)]
         self.runtime.expected_routes = {k: 'fp4' for k in keys}
         self.runtime.calls = {k: 2 for k in keys}
+        self.runtime.profile = SimpleNamespace(head='lm_head')
 
     def check(self, step, **expected):
         before = dict(self.runtime.calls)

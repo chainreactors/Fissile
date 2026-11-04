@@ -32,6 +32,9 @@ class ProviderSpec:
     fusions: frozenset[str]
     alignment: int
     resources: tuple[ResourceSpec, ...] = ()
+    # Largest row count served by the paired gate/up MLP kernel; longer inputs
+    # use separate gate/up GEMMs. Required with the ``paired_mlp`` fusion.
+    paired_mlp_max_rows: int = 0
 
     def __post_init__(self):
         if self.alignment < 1 or not self.packed_routes <= self.routes:
@@ -40,6 +43,10 @@ class ProviderSpec:
             raise ValueError("Duplicate provider resources")
         if any(r.integrity not in {"sha256", "build_receipt"} for r in self.resources):
             raise ValueError("Unknown resource integrity contract")
+        if self.paired_mlp_max_rows < 0 or (
+            "paired_mlp" in self.fusions and not self.paired_mlp_max_rows
+        ):
+            raise ValueError("paired_mlp fusion requires a positive paired_mlp_max_rows")
 
     def validate(self, plan, *, capability=None, activation_dtype="bfloat16"):
         if (
@@ -98,6 +105,7 @@ register_provider(
             ResourceSpec("tensorfold_library", "build_receipt"),
             ResourceSpec("silu_lut", "sha256"),
         ),
+        paired_mlp_max_rows=1536,
     )
 )
 register_provider(

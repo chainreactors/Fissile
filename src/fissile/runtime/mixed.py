@@ -219,7 +219,7 @@ class MixedRuntime:
         if set(self.calls) != set(self.expected_routes) or set(before) != set(self.calls):
             raise RuntimeError("Projection bypass or unexpected extra execution")
         delta = {k: self.calls[k] - before[k] for k in self.calls}
-        if delta.pop("lm_head") != head or set(delta.values()) != {body}:
+        if delta.pop(self.profile.head) != head or set(delta.values()) != {body}:
             raise RuntimeError("Projection bypass or unexpected extra execution")
 
     def validate_pass(self, before):
@@ -234,7 +234,7 @@ class MixedRuntime:
         if set(self.calls) != set(self.expected_routes) or set(before) != set(self.calls):
             raise RuntimeError("Projection bypass or unexpected extra execution")
         delta = {k: self.calls[k] - before[k] for k in self.calls}
-        if delta.pop("lm_head") != 1:
+        if delta.pop(self.profile.head) != 1:
             raise RuntimeError("Projection bypass or unexpected extra execution")
         body = set(delta.values())
         if body not in ({1}, {0}) or len({self.calls[k] for k in delta}) != 1:

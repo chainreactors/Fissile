@@ -37,13 +37,6 @@ def projection_shapes():
     return shapes
 
 
-def canonical_key(key):
-    if key == "base_model.model.lm_head":
-        return "lm_head"
-    prefix = "base_model.model.model.language_model."
-    return key[len(prefix) :] if key.startswith(prefix) else key
-
-
 def route(key):
     """Compatibility helper; precision selection lives in recipes."""
     from fissile.recipes import get_recipe, DEFAULT_RECIPE

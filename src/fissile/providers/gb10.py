@@ -17,6 +17,7 @@ class GB10Provider:
         require_gpu(config.provider.capability)
         self.kernel = TensorFoldW4A16(config.resources["tensorfold_library"].path)
         self.paired_kernel = RegisterPairedGLU(capability=config.provider.capability)
+        self.paired_max_rows = config.provider.paired_mlp_max_rows
         expected = load_file(str(config.resources["silu_lut"].path), device="cpu")[
             "bits"
         ]
@@ -234,7 +235,7 @@ class GB10Provider:
         def compute(matrix):
             m = len(matrix)
             a = quantize(matrix, adaptive=False)
-            if m <= 1536:
+            if m <= self.paired_max_rows:
                 call, _ = self.paired_kernel.prepare(a, paired)
                 hidden = call()[:m].contiguous()
             else:

@@ -1,34 +1,17 @@
-"""SGLang layout adapter. Shared numerical execution lives in runtime.mixed."""
+"""SGLang adapter. Module layout lives in backends.layouts; math in runtime.mixed."""
 
 import json
 import os
 from types import MethodType
-import torch
-from sglang.srt.models.qwen3_5 import Qwen3_5ForConditionalGeneration as Original
+from sglang.srt.models.qwen3_5 import Qwen3_5ForConditionalGeneration as _Qwen3_5
+from fissile.backends.layouts import PackedMethod, get_layout, install_fused, module_at
 from fissile.runtime.mixed import MixedRuntime
 from fissile.runtime.graph import VALID_ROWS
 
 
-class PackedMethod:
-    """SGLang linear dispatch interface, intentionally not UnquantizedLinearMethod."""
+class FissileModel:
+    """Mixin for an SGLang causal-LM class; combine it with the engine's model class."""
 
-    def __init__(self, function):
-        self.function = function
-
-    def process_weights_after_loading(self, layer):
-        pass
-
-    def apply(self, layer, x, bias=None, **kwargs):
-        if bias is not None:
-            raise ValueError("Only bias-free selected dense projections are supported")
-        return self.function(x)
-
-
-def _concatenate(outputs):
-    return torch.cat(outputs, dim=-1)
-
-
-class Qwen3_5ForConditionalGeneration(Original):
     def load_weights(self, weights):
         loaded = super().load_weights(weights)
         if hasattr(self, "_fissile_runtime"):
@@ -39,64 +22,21 @@ class Qwen3_5ForConditionalGeneration(Original):
         get_backend("sglang").validate(runtime.config)
         out = runtime.config.report_dir
         out.mkdir(parents=True, exist_ok=False)
-        if len(self.model.layers) != len(runtime.profile.mlps):
-            raise ValueError("Expected all model layers")
-        for i, layer in enumerate(self.model.layers):
-            prefix = f"layers.{i}"
-            gate_width = runtime.metadata[prefix + ".mlp.gate_proj"]["shape"][0]
-            gate, up = layer.mlp.gate_up_proj.weight.split(gate_width, dim=0)
-            mlp = runtime.mlp(
-                prefix + ".mlp", gate, up, layer.mlp.down_proj.weight, long_silu="torch"
-            )
-
-            def forward(this, x, forward_batch=None, _fn=mlp):
-                return _fn(x)
-
-            layer.mlp.forward = MethodType(forward, layer.mlp)
-            if hasattr(layer, "linear_attn"):
-                attn = layer.linear_attn
-                widths = [
-                    runtime.metadata[prefix + ".linear_attn." + k]["shape"][0]
-                    for k in ("in_proj_qkv", "in_proj_z")
-                ]
-                qkv, z = attn.in_proj_qkvz.weight.split(widths, dim=0)
-                attn.in_proj_qkvz.quant_method = PackedMethod(
-                    runtime.joined_projection_group(
-                        [
-                            prefix + ".linear_attn.in_proj_qkv",
-                            prefix + ".linear_attn.in_proj_z",
-                        ],
-                        [qkv, z],
-                        _concatenate,
-                    )
-                )
-                attn.out_proj.quant_method = PackedMethod(
-                    runtime.projection(
-                        prefix + ".linear_attn.out_proj", attn.out_proj.weight
-                    )
-                )
-                # Do not let a derived BF16 cache bypass mixed projections.
-                attn._fused_in_proj_weight = None
-                attn.finalize_fused_in_proj = MethodType(lambda this: None, attn)
-            else:
-                keys = [
-                    prefix + ".self_attn." + n for n in ("q_proj", "k_proj", "v_proj")
-                ]
-                widths = [runtime.metadata[k]["shape"][0] for k in keys]
-                parts = layer.qkv_proj.weight.split(widths, dim=0)
-                layer.qkv_proj.quant_method = PackedMethod(
-                    runtime.joined_projection_group(keys, parts, _concatenate)
-                )
-                layer.o_proj.quant_method = PackedMethod(
-                    runtime.projection(
-                        prefix + ".self_attn.o_proj", layer.o_proj.weight
-                    )
-                )
+        layers = install_fused(runtime, self, engine="sglang")
+        # Do not let SGLang's derived BF16 input-projection caches bypass the
+        # installed projections.
+        for layer in layers:
+            for module in layer.modules():
+                if hasattr(module, "finalize_fused_in_proj"):
+                    module._fused_in_proj_weight = None
+                    module.finalize_fused_in_proj = MethodType(lambda this: None, module)
+        head_key = runtime.profile.head
+        head_module = module_at(self, get_layout(runtime.profile.name).head)
         readout = os.environ.get("FISSILE_READOUT", "full")
         if readout == "full":
-            head = runtime.projection("lm_head", self.lm_head.weight)
+            head = runtime.projection(head_key, head_module.weight)
         elif readout == "candidates":
-            candidate_head = runtime.candidate_readout("lm_head", self.lm_head.weight)
+            candidate_head = runtime.candidate_readout(head_key, head_module.weight)
 
             def head(x, _model=self):
                 if _model._fissile_candidates is None:
@@ -105,12 +45,12 @@ class Qwen3_5ForConditionalGeneration(Original):
 
         else:
             raise ValueError("Unknown FISSILE_READOUT: " + readout)
-        self.lm_head.quant_method = PackedMethod(head)
+        head_module.quant_method = PackedMethod(head)
         self._fissile_readout = readout
         self._fissile_candidates = None
         self._fissile_runtime = runtime
         self._fissile_forwards = 0
-        VALID_ROWS.allocate(self.lm_head.weight.device)
+        VALID_ROWS.allocate(head_module.weight.device)
         report = runtime.validate_coverage()
         report["engine"] = "sglang"
         report["readout"] = readout
@@ -125,7 +65,8 @@ class Qwen3_5ForConditionalGeneration(Original):
             or forward_batch.batch_size != 1
         ):
             raise ValueError(
-                "Only singleton complete prefill scoring up to 16384 tokens is qualified; "
+                "Only singleton complete prefill scoring up to "
+                f"{self._fissile_runtime.profile.max_context} tokens is qualified; "
                 f"shape={tuple(input_ids.shape)}, batch_size={forward_batch.batch_size}, "
                 f"extend_lengths={getattr(forward_batch, 'extend_seq_lens_cpu', None)}"
             )
@@ -166,4 +107,8 @@ class Qwen3_5ForConditionalGeneration(Original):
         return result
 
 
-EntryClass = Qwen3_5ForConditionalGeneration
+class Qwen3_5ForConditionalGeneration(FissileModel, _Qwen3_5):
+    pass
+
+
+EntryClass = [Qwen3_5ForConditionalGeneration]

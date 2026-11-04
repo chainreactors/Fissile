@@ -58,6 +58,14 @@ class ModelProfile:
     def shapes(self):
         return {p.key: list(p.shape) for p in self.projections}
 
+    @property
+    def head(self):
+        """Canonical key of the single output-head projection (role ``head``)."""
+        heads = [p.key for p in self.projections if p.role == "head"]
+        if len(heads) != 1:
+            raise ValueError("Profile must have exactly one head projection")
+        return heads[0]
+
 
 _PROFILES = {}
 

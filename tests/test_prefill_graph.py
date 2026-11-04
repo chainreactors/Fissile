@@ -21,13 +21,21 @@ class PrefillGraphSettings(unittest.TestCase):
         self.assertLessEqual(max(b / a for a, b in zip(buckets, buckets[1:])), 2)
         self.assertEqual(tuple(buckets), PREFILL_GRAPH_BUCKETS)
 
+    def test_paired_mlp_limit_must_be_a_bucket_boundary(self):
+        for limit in (0, 1536, 8192):
+            self.assertEqual(prefill_graph_settings(True, limit)["cuda_graph_backend_prefill"], "breakable")
+        with self.assertRaises(ValueError):
+            prefill_graph_settings(True, 1500)
+        self.assertEqual(prefill_graph_settings(False, 1500), {"cuda_graph_backend_prefill": "disabled"})
+
     def _engine_kwargs(self, **options):
         from fissile.backends.sglang.engine import scoring_engine
         kwargs = {}
         def create(**settings):
             kwargs.update(settings)
             return SimpleNamespace(shutdown=lambda: None)
-        config = SimpleNamespace(plan=SimpleNamespace(profile=SimpleNamespace(max_context=16384)))
+        config = SimpleNamespace(plan=SimpleNamespace(profile=SimpleNamespace(max_context=16384)),
+                                 provider=SimpleNamespace(paired_mlp_max_rows=1536))
         with patch('fissile.backends.sglang.engine.Config.load', return_value=config), patch(
                 'fissile.backends.registry.get_backend', return_value=SimpleNamespace(validate=lambda _: None)), patch.dict(
                 'sys.modules', {'sglang': SimpleNamespace(Engine=create)}), patch.dict('os.environ', {}, clear=True):
@@ -55,6 +63,7 @@ class ValidatePass(unittest.TestCase):
         keys = ["lm_head"] + ["layers.%d.p" % i for i in range(8)]
         self.runtime.expected_routes = {k: "fp4" for k in keys}
         self.runtime.calls = {k: 3 for k in keys}
+        self.runtime.profile = SimpleNamespace(head="lm_head")
 
     def run_pass(self, step):
         before = dict(self.runtime.calls)
