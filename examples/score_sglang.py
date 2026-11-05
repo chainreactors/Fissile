@@ -17,14 +17,21 @@ def main():
         action="store_true",
         help="Replay prefill from SGLang's breakable CUDA graph (see docs/architecture.md)",
     )
+    p.add_argument(
+        "--activation-scales",
+        help="Calibrated activation scale file: run a gb10-mixed-v2 config with static "
+        "NVFP4 activation scales (see docs/architecture.md)",
+    )
     a = p.parse_args()
     output = Path(a.output)
     if output.exists():
         raise FileExistsError(output)
     rows = [json.loads(line) for line in Path(a.inputs).open()]
     options = {"prefill_cuda_graph": True} if a.prefill_cuda_graph else {}
+    if a.activation_scales:
+        options["activation_scales"] = a.activation_scales
     if options and a.backend == "vllm":
-        p.error("--prefill-cuda-graph applies to the SGLang backends")
+        p.error("--prefill-cuda-graph and --activation-scales apply to the SGLang backends")
     with open_backend(a.backend, a.config, a.model, **options) as session, output.open("x") as f:
         for r in rows:
             start = time.perf_counter()

@@ -147,6 +147,22 @@ class Config:
             )
         return self
 
+    def as_dict(self):
+        """This configuration as fissile-config-v2 data with absolute paths."""
+        return {
+            "format": "fissile-config-v2",
+            "profile": self.profile,
+            "recipe": self.recipe,
+            "kernel_provider": self.kernel_provider,
+            "manifest": str(self.manifest),
+            "artifacts_dir": str(self.artifacts_dir),
+            "report_dir": str(self.report_dir),
+            "resources": {
+                name: {"path": str(r.path), **({"sha256": r.sha256} if r.sha256 else {})}
+                for name, r in self.resources.items()
+            },
+        }
+
     @classmethod
     def load(cls, path, *, verify_files=True):
         path = Path(path).resolve()

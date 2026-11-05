@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import os
 from pathlib import Path
+import tempfile
 from fissile.config import Config
 
 
@@ -50,7 +51,24 @@ def prefill_graph_settings(enabled, paired_mlp_max_rows=0):
 
 
 @contextmanager
-def scoring_engine(config, model_path, *, readout="full", prefill_cuda_graph=False):
+def scoring_engine(
+    config, model_path, *, readout="full", prefill_cuda_graph=False, activation_scales=None
+):
+    if activation_scales is not None:
+        # Static activation scales: run the gb10-mixed-v2 configuration as its
+        # gb10-mixed-v2-static variant for the lifetime of this engine.
+        if prefill_cuda_graph:
+            raise ValueError("Static activation scales are not qualified with prefill CUDA graphs")
+        from fissile.providers.static_scales import derived_config
+
+        with tempfile.TemporaryDirectory(prefix="fissile-static-") as directory:
+            with scoring_engine(
+                derived_config(config, directory, scales=activation_scales),
+                model_path,
+                readout=readout,
+            ) as engine:
+                yield engine
+        return
     if readout not in READOUTS:
         raise ValueError("Unknown readout: " + str(readout))
     config = Path(config).resolve()
@@ -118,7 +136,9 @@ def scoring_engine(config, model_path, *, readout="full", prefill_cuda_graph=Fal
 
 
 @contextmanager
-def open_session(config, model, *, readout="full", prefill_cuda_graph=False):
+def open_session(
+    config, model, *, readout="full", prefill_cuda_graph=False, activation_scales=None
+):
     """Common backend contract; this adapter owns the SGLang engine.
 
     ``readout="full"`` returns full-vocabulary log probabilities. ``"candidates"``
@@ -127,6 +147,8 @@ def open_session(config, model, *, readout="full", prefill_cuda_graph=False):
     decision) is mathematically unchanged. ``prefill_cuda_graph=True`` replays
     the transformer body from SGLang's breakable prefill graph for inputs up to
     4,096 tokens; see docs/architecture.md before enabling it.
+    ``activation_scales`` (a calibrated scale file) runs a gb10-mixed-v2
+    configuration with static NVFP4 activation scales (gb10-mixed-v2-static).
     """
     from fissile.backends.contracts import Score
 
@@ -146,15 +168,23 @@ def open_session(config, model, *, readout="full", prefill_cuda_graph=False):
             return Score(tuple(result.token_logprobs[0]), result.prompt_tokens)
 
     with scoring_engine(
-        config, model, readout=readout, prefill_cuda_graph=prefill_cuda_graph
+        config,
+        model,
+        readout=readout,
+        prefill_cuda_graph=prefill_cuda_graph,
+        activation_scales=activation_scales,
     ) as engine:
         yield Session(engine)
 
 
 @contextmanager
-def open_candidate_session(config, model, *, prefill_cuda_graph=False):
+def open_candidate_session(config, model, *, prefill_cuda_graph=False, activation_scales=None):
     """Candidate-normalized log probabilities; decisions match ``open_session``."""
     with open_session(
-        config, model, readout="candidates", prefill_cuda_graph=prefill_cuda_graph
+        config,
+        model,
+        readout="candidates",
+        prefill_cuda_graph=prefill_cuda_graph,
+        activation_scales=activation_scales,
     ) as session:
         yield session

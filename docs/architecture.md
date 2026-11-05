@@ -44,24 +44,28 @@ gate/up GLU with a BF16 SiLU lookup epilogue.
 
 ### Static activation scales
 
-`gb10-mixed-v2-static` replaces the per-forward tensor-wide amax of every W4A4
-activation with a fixed global scale per activation site (a projection's or
-projection group's input, the MLP input and the MLP hidden activation, named by
-the first consuming projection key). Each activation is packed in one launch,
-GEMM alphas are computed once, and the paired GLU writes the packed hidden
-activation from its epilogue, bitwise equal to packing its BF16 output.
+Off by default. `open_backend(..., activation_scales="scales.json")` or
+`--activation-scales scales.json` in `examples/score_sglang.py` runs a
+`gb10-mixed-v2` configuration as `gb10-mixed-v2-static` on the SGLang backends:
+every W4A4 activation uses a fixed global scale per activation site (a
+projection's or projection group's input, the MLP input and the MLP hidden
+activation, named by the first consuming projection key) instead of the
+per-forward tensor-wide amax. Each activation is packed in one launch, GEMM
+alphas are computed once, and the paired GLU writes the packed hidden activation
+from its epilogue, bitwise equal to packing its BF16 output. The install report
+records the provider and the scale file's sha256. Not combined with prefill CUDA
+graphs.
 
-Scales come from `gb10-mixed-v2-calibration`, which keeps the `gb10-mixed-v2`
-arithmetic and records each site's largest per-forward scale:
+Scales come from the same configuration's calibration variant, which keeps the
+`gb10-mixed-v2` arithmetic and records each site's largest per-forward scale:
 
 ```bash
-python scripts/calibrate_activation_scales.py --config calibration.json \
+python scripts/calibrate_activation_scales.py --config fissile.json \
     --model MODEL --inputs suite.jsonl --output scales.json   # every 29th row
 ```
 
-The file is the `activation_scales` resource (with its sha256) of the static
-config. Activations larger than the calibrated range saturate, so scores depend
-on how representative the calibration rows are.
+Activations larger than the calibrated range saturate, so scores depend on how
+representative the calibration rows are.
 
 GB10, full suite (29,182 questions), scales from every 29th question:
 
