@@ -219,6 +219,49 @@ class _Entry:
         self.op(a, b, sa, sb, c, alpha, 2147483647, stream, silu_lut=table)
 
 
+class _FP4Entry(_Entry):
+    """Same kernel; the epilogue writes the NVFP4 pack of the GLU output."""
+
+    @cute.jit
+    def launch(
+        self,
+        ap: cute.Pointer,
+        bp: cute.Pointer,
+        sap: cute.Pointer,
+        sbp: cute.Pointer,
+        cp: cute.Pointer,
+        alphap: cute.Pointer,
+        lutp: cute.Pointer,
+        qp: cute.Pointer,
+        sp: cute.Pointer,
+        gp: cute.Pointer,
+        m: cutlass.Int32,
+        scale_rows: cutlass.Int32,
+        stream: cuda.CUstream,
+    ):
+        a = cute.make_tensor(
+            ap, cute.make_layout((m, self.k, 1), stride=(self.k, 1, m * self.k))
+        )
+        b = cute.make_tensor(
+            bp,
+            cute.make_layout(
+                (self.n * 2, self.k, 1), stride=(self.k, 1, self.n * 2 * self.k)
+            ),
+        )
+        c = cute.make_tensor(
+            cp, cute.make_layout((m, self.n, 1), stride=(self.n, 1, m * self.n))
+        )
+        sa = cute.make_tensor(sap, cute.make_layout((1,), stride=(1,)))
+        sb = cute.make_tensor(sbp, cute.make_layout((1,), stride=(1,)))
+        alpha = cute.make_tensor(alphap, cute.make_layout((2,), stride=(1,)))
+        table = cute.make_tensor(lutp, cute.make_layout((65536,), stride=(1,)))
+        codes = cute.make_tensor(qp, cute.make_layout((m, self.n // 2), stride=(self.n // 2, 1)))
+        scales = cute.make_tensor(sp, cute.make_layout((scale_rows * (self.n // 16),), stride=(1,)))
+        global_scale = cute.make_tensor(gp, cute.make_layout((1,), stride=(1,)))
+        self.op(a, b, sa, sb, c, alpha, 2147483647, stream, silu_lut=table,
+                fp4_codes=codes, fp4_scales=scales, fp4_global=global_scale)
+
+
 class RegisterPairedGLU:
     def __init__(self, *, capability=(12, 1)):
         self.gpu_arch = _target_arch(capability)
@@ -229,7 +272,10 @@ class RegisterPairedGLU:
         self.compiled = {}
         self.compile_records = []
 
-    def prepare(self, activation, paired, *, guarded=False):
+    def prepare(self, activation, paired, *, guarded=False, fp4_global=None):
+        """``fp4_global`` (one FP32 value): the call returns the NVFP4 pack of the
+        output (codes, block scales, global scale) written by the epilogue,
+        equal to ``nvfp4_static.quantize_static`` of the BF16 output."""
         qa, sa, ga = activation
         m = qa.shape[0]
         n, k = paired.n, paired.k
@@ -262,6 +308,12 @@ class RegisterPairedGLU:
         else:
             out = torch.empty((m, n), dtype=torch.bfloat16, device=qa.device)
         alpha = ga * paired.globals
+        if fp4_global is not None:
+            if guarded or fp4_global.dtype != torch.float32 or fp4_global.numel() != 1:
+                raise ValueError("NVFP4 output needs one FP32 global scale and no guards")
+            scale_rows = (m + 127) // 128 * 128
+            codes = torch.empty((m, n // 2), dtype=torch.uint8, device=qa.device)
+            scales = torch.empty(scale_rows * n // 16, dtype=torch.float8_e4m3fn, device=qa.device)
         spec = (
             (qa, cutlass.Float4E2M1FN, 32),
             (paired.q, cutlass.Float4E2M1FN, 32),
@@ -271,19 +323,25 @@ class RegisterPairedGLU:
             (alpha, cutlass.Float32, 4),
             (self.silu_table, cutlass.BFloat16, 16),
         )
+        if fp4_global is not None:
+            spec += (
+                (codes, cutlass.Uint8, 16),
+                (scales, cutlass.Uint8, 16),
+                (fp4_global, cutlass.Float32, 4),
+            )
         if any(t.data_ptr() % alignment for t, dtype, alignment in spec):
             raise ValueError("Pointer alignment mismatch")
         args = tuple(
             make_ptr(dtype, t.data_ptr(), cute.AddressSpace.gmem, alignment)
             for t, dtype, alignment in spec
         )
-        args += (
-            cutlass.Int32(m),
-            cuda.CUstream(torch.cuda.current_stream().cuda_stream),
-        )
-        key = (n, k)
+        args += (cutlass.Int32(m),)
+        if fp4_global is not None:
+            args += (cutlass.Int32(scale_rows),)
+        args += (cuda.CUstream(torch.cuda.current_stream().cuda_stream),)
+        key = (n, k, fp4_global is not None)
         if key not in self.compiled:
-            entry = _Entry(n, k)
+            entry = (_FP4Entry if fp4_global is not None else _Entry)(n, k)
             start = time.perf_counter()
             compiled = cute.compile(entry.launch, *args, options="--gpu-arch=" + self.gpu_arch)
             self.compiled[key] = (entry, compiled)
@@ -299,10 +357,14 @@ class RegisterPairedGLU:
             )
         fn = self.compiled[key][1]
         keepalive = (activation, paired, out, alpha, storage, self.silu_table)
+        if fp4_global is not None:
+            keepalive += (codes, scales, fp4_global)
 
         def run():
             _ = keepalive
             fn(*args)
+            if fp4_global is not None:
+                return codes.view(torch.float4_e2m1fn_x2), scales, fp4_global
             return out
 
         run.guards = (storage[:256], storage[-256:]) if guarded else None

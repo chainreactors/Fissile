@@ -32,6 +32,8 @@ before importing engine code. Core imports and backend discovery are CPU-only.
 | `gb10-mixed-v1` | cuBLAS (`torch._scaled_mm_v2`) | 1,536 | TensorFold library, SiLU table |
 | `gb10-mixed-v2` | Pinned CUTLASS SM121 kernel | 1,536 | TensorFold library, SiLU table, FP4 GEMM library |
 | `sm120-mixed-v1` | cuBLAS | 1,536 | TensorFold library, SiLU table |
+| `gb10-mixed-v2-calibration` | As `gb10-mixed-v2` | 1,536 | As `gb10-mixed-v2` |
+| `gb10-mixed-v2-static` | As `gb10-mixed-v2` | 1,536 | As `gb10-mixed-v2`, activation scales |
 
 Each provider declares `paired_mlp_max_rows`: inputs up to that many rows use
 the paired gate/up kernel, longer inputs separate gate/up GEMMs.
@@ -39,6 +41,39 @@ the paired gate/up kernel, longer inputs separate gate/up GEMMs.
 All providers implement the same recipe: NVFP4 W4A4 body projections, FP8
 rowwise full-attention K/V, a TensorFold NVFP4 W4A16 output head and paired
 gate/up GLU with a BF16 SiLU lookup epilogue.
+
+### Static activation scales
+
+`gb10-mixed-v2-static` replaces the per-forward tensor-wide amax of every W4A4
+activation with a fixed global scale per activation site (a projection's or
+projection group's input, the MLP input and the MLP hidden activation, named by
+the first consuming projection key). Each activation is packed in one launch,
+GEMM alphas are computed once, and the paired GLU writes the packed hidden
+activation from its epilogue, bitwise equal to packing its BF16 output.
+
+Scales come from `gb10-mixed-v2-calibration`, which keeps the `gb10-mixed-v2`
+arithmetic and records each site's largest per-forward scale:
+
+```bash
+python scripts/calibrate_activation_scales.py --config calibration.json \
+    --model MODEL --inputs suite.jsonl --output scales.json   # every 29th row
+```
+
+The file is the `activation_scales` resource (with its sha256) of the static
+config. Activations larger than the calibrated range saturate, so scores depend
+on how representative the calibration rows are.
+
+GB10, full suite (29,182 questions), scales from every 29th question:
+
+| Provider | Accuracy | Mean latency | Queued req/s¹ |
+|---|---:|---:|---:|
+| `gb10-mixed-v2` | 75.18% | 55.70 ms | 17.21 |
+| `gb10-mixed-v2-static` | 75.01% | 52.68 ms | 18.64 |
+
+On the 28,175 questions outside the calibration rows: 74.98% vs 75.15%
+(McNemar z = 1.19). ¹ 300 inputs of at most 1,536 tokens submitted at once,
+candidate readout; short inputs gain less because they are bound by kernel
+launch overhead.
 
 ## Engine adapters
 

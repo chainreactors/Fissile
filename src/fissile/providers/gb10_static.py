@@ -7,8 +7,9 @@ the first projection key that consumes it (``...mlp.gate_proj`` for the MLP inpu
 
 ``gb10-mixed-v2-static`` quantizes every site with a fixed FP32 global scale from a
 calibrated scale file instead of the per-forward tensor amax: one pack launch per
-activation, and each GEMM's alpha (activation scale x weight scale) computed once. Scores differ from gb10-mixed-v2 and need
-their own accuracy qualification.
+activation, and each GEMM's alpha (activation scale x weight scale) computed once.
+The paired GLU writes the packed MLP hidden activation from its epilogue. Scores
+differ from gb10-mixed-v2 and need their own accuracy qualification.
 
 ``gb10-mixed-v2-calibration`` keeps the gb10-mixed-v2 arithmetic exactly and records
 the largest per-forward global scale of every site (see
@@ -225,6 +226,12 @@ class GB10StaticProvider(_SiteProvider):
 
     def _quantize(self, site, x):
         return quantize_static(x, self._scale(site))
+
+    def _paired_hidden(self, activation, paired, rows, site):
+        # The GLU epilogue writes the packed hidden activation directly; equal to
+        # quantize_static of its BF16 output.
+        call, _ = self.paired_kernel.prepare(activation, paired, fp4_global=self._scale(site))
+        return call()
 
     def _gemm(self, site, packed):
         qb, sb, gb = packed

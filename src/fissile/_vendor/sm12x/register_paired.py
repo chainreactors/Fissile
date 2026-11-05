@@ -127,6 +127,70 @@ def scatter_add_bf16x2(addr: Int64, val0_f32, val1_f32, *, loc=None, ip=None):
     )
 
 
+# Fissile: NVFP4 output epilogue helpers. They reproduce the arithmetic of
+# fissile.kernels.nvfp4_adaptive._pack (Triton): approximate div.full.f32
+# division, round-to-nearest satfinite E4M3 block scales and E2M1 codes.
+@dsl_user_op
+def _div_full(a, b, *, loc=None, ip=None):
+    return Float32(
+        llvm.inline_asm(
+            T.f32(),
+            [Float32(a).ir_value(loc=loc, ip=ip), Float32(b).ir_value(loc=loc, ip=ip)],
+            "div.full.f32 $0, $1, $2;",
+            "=f,f,f",
+            has_side_effects=False,
+            is_align_stack=False,
+            asm_dialect=llvm.AsmDialect.AD_ATT,
+        )
+    )
+
+
+@dsl_user_op
+def _e4m3_byte(x, *, loc=None, ip=None):
+    return Int32(
+        llvm.inline_asm(
+            T.i32(),
+            [Float32(x).ir_value(loc=loc, ip=ip), Float32(0.0).ir_value(loc=loc, ip=ip)],
+            "{ .reg .b16 h; cvt.rn.satfinite.e4m3x2.f32 h, $2, $1; cvt.u32.u16 $0, h; }",
+            "=r,f,f",
+            has_side_effects=False,
+            is_align_stack=False,
+            asm_dialect=llvm.AsmDialect.AD_ATT,
+        )
+    ) & Int32(255)
+
+
+@dsl_user_op
+def _e4m3_value(byte, *, loc=None, ip=None):
+    return Float32(
+        llvm.inline_asm(
+            T.f32(),
+            [Int32(byte).ir_value(loc=loc, ip=ip)],
+            "{ .reg .b16 h; .reg .b32 r; .reg .f16 lo, hi; cvt.u16.u32 h, $1; "
+            "cvt.rn.f16x2.e4m3x2 r, h; mov.b32 {lo, hi}, r; cvt.f32.f16 $0, lo; }",
+            "=f,r",
+            has_side_effects=False,
+            is_align_stack=False,
+            asm_dialect=llvm.AsmDialect.AD_ATT,
+        )
+    )
+
+
+@dsl_user_op
+def _e2m1x2_byte(lo, hi, *, loc=None, ip=None):
+    return Int32(
+        llvm.inline_asm(
+            T.i32(),
+            [Float32(lo).ir_value(loc=loc, ip=ip), Float32(hi).ir_value(loc=loc, ip=ip)],
+            "{ .reg .b8 bits; cvt.rn.satfinite.e2m1x2.f32 bits, $2, $1; mov.b32 $0, {bits, 0, 0, 0}; }",
+            "=r,f,f",
+            has_side_effects=False,
+            is_align_stack=False,
+            asm_dialect=llvm.AsmDialect.AD_ATT,
+        )
+    )
+
+
 logger = logging.getLogger(__name__)
 _DENSE_LOAD_PATHS = ("tma", "cpasync")
 
@@ -503,8 +567,14 @@ class RegisterPairedGemmKernel:
         svdquant_bias: Optional[cute.Tensor] = None,
         epilogue_op: cutlass.Constexpr = lambda x: x,
         silu_lut: Optional[cute.Tensor] = None,
+        fp4_codes: Optional[cute.Tensor] = None,
+        fp4_scales: Optional[cute.Tensor] = None,
+        fp4_global: Optional[cute.Tensor] = None,
     ):
         """Execute the GEMM operation.
+
+        Fissile: with ``fp4_codes``/``fp4_scales``/``fp4_global`` the epilogue writes
+        the NVFP4 pack of the BF16 GLU output (static global scale) instead of C.
 
         Args:
             a: Input tensor A
@@ -698,6 +768,9 @@ class RegisterPairedGemmKernel:
             svdquant_l1,
             svdquant_bias,
             silu_lut,
+            fp4_codes,
+            fp4_scales,
+            fp4_global,
         ).launch(
             grid=grid,
             block=[self.threads_per_cta, 1, 1],
@@ -1064,6 +1137,9 @@ class RegisterPairedGemmKernel:
         svdquant_l1: Optional[cute.Tensor],
         svdquant_bias: Optional[cute.Tensor],
         silu_lut: cute.Tensor,
+        fp4_codes: Optional[cute.Tensor],
+        fp4_scales: Optional[cute.Tensor],
+        fp4_global: Optional[cute.Tensor],
     ):
         # Keep alpha in FP32 for precision
         alpha_value = alpha[0].to(cutlass.Float32)
@@ -1891,7 +1967,50 @@ class RegisterPairedGemmKernel:
                 acc_mn = _reshape_acc_to_mn(accumulators)
                 coords = _reshape_acc_to_mn(thr_mma.partition_C(cute.make_identity_tensor((128, 128))))
                 assert cute.size(acc_mn.shape[0]) == 4 and cute.size(acc_mn.shape[1]) == 16
-                for acc_m in cutlass.range_constexpr(4):
+                if cutlass.const_expr(fp4_codes is not None):
+                    # Each 16-column output block of a row is held by one lane quad
+                    # (4 values per lane: columns c, c+1, c+8, c+9): reduce the block
+                    # amax over the quad, then every lane packs and stores its codes.
+                    fp4_g = fp4_global[0].to(Float32)
+                    fp4_inv_g = _div_full(Float32(1.0), fp4_g)
+                    fp4_k64 = fp4_codes.shape[1] // 32
+                    for fp4_m in cutlass.range_constexpr(4):
+                        fp4_row = tile_coord_mnl[0] * Int32(128) + coords[fp4_m, 0][0]
+                        for fp4_blk in cutlass.range_constexpr(2):
+                            fp4_vals = []
+                            for fp4_j in cutlass.range_constexpr(4):
+                                fp4_n = fp4_blk * 4 + fp4_j
+                                fp4_gate = (alpha_value * acc_mn[fp4_m, fp4_n]).to(BFloat16)
+                                fp4_up = (alpha_up * acc_mn[fp4_m, fp4_n + 8]).to(BFloat16)
+                                fp4_act = lookup_silu(fp4_gate, silu_lut)
+                                fp4_vals.append((fp4_act.to(Float32) * fp4_up.to(Float32)).to(BFloat16).to(Float32))
+                            fp4_amax = cute.arch.fmax(
+                                cute.arch.fmax(cute.arch.fmax(fp4_vals[0], -fp4_vals[0]), cute.arch.fmax(fp4_vals[1], -fp4_vals[1])),
+                                cute.arch.fmax(cute.arch.fmax(fp4_vals[2], -fp4_vals[2]), cute.arch.fmax(fp4_vals[3], -fp4_vals[3])),
+                            )
+                            fp4_amax = cute.arch.fmax(fp4_amax, cute.arch.shuffle_sync_bfly(fp4_amax, offset=1))
+                            fp4_amax = cute.arch.fmax(fp4_amax, cute.arch.shuffle_sync_bfly(fp4_amax, offset=2))
+                            fp4_bounded = cute.arch.fmin(
+                                cute.arch.fmax(_div_full(_div_full(fp4_amax, Float32(6.0)), fp4_g), Float32(0.015625)),
+                                Float32(448.0),
+                            )
+                            fp4_scale = _e4m3_byte(fp4_bounded)
+                            fp4_factor = _div_full(fp4_inv_g, _e4m3_value(fp4_scale))
+                            fp4_col0 = tile_coord_mnl[1] * Int32(64) + coords[fp4_m, fp4_blk * 4][1]
+                            fp4_col2 = tile_coord_mnl[1] * Int32(64) + coords[fp4_m, fp4_blk * 4 + 2][1]
+                            if fp4_row < Int32(fp4_codes.shape[0]):
+                                fp4_codes[(fp4_row, fp4_col0 // Int32(2))] = _e2m1x2_byte(fp4_vals[0] * fp4_factor, fp4_vals[1] * fp4_factor).to(cutlass.Uint8)
+                                fp4_codes[(fp4_row, fp4_col2 // Int32(2))] = _e2m1x2_byte(fp4_vals[2] * fp4_factor, fp4_vals[3] * fp4_factor).to(cutlass.Uint8)
+                            if fp4_col0 % Int32(16) == Int32(0):
+                                fp4_kb = fp4_col0 // Int32(16)
+                                fp4_index = (
+                                    ((fp4_row // Int32(128)) * fp4_k64 + fp4_kb // Int32(4)) * Int32(512)
+                                    + (fp4_row % Int32(32)) * Int32(16)
+                                    + ((fp4_row % Int32(128)) // Int32(32)) * Int32(4)
+                                    + fp4_kb % Int32(4)
+                                )
+                                fp4_scales[fp4_index] = fp4_scale.to(cutlass.Uint8)
+                for acc_m in cutlass.range_constexpr(0 if fp4_codes is not None else 4):
                     for acc_n in cutlass.range_constexpr(8):
                         coord = coords[acc_m, acc_n]
                         m_coord = tile_coord_mnl[0] * Int32(128) + coord[0]
