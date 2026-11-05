@@ -1,0 +1,186 @@
+{
+ "schema": "fissile-static-activation-scales-v1",
+ "date": "2026-11-05",
+ "hardware": "NVIDIA GB10 (SM121), 128 GB unified memory; CUDA 13.0",
+ "software": "Torch 2.13.0+cu130, SGLang 0.5.21, Transformers 5.12.1, Triton 3.7.1, CuTe DSL 4.8.0",
+ "protocol": "sglang-candidates; one engine per device; 48-request warm-up, then one timed pass over every question (CheckedSession.score).",
+ "timing": "BF16, gb10-mixed-v2 and gb10-mixed-v2-static run one after another on one GB10 (2026-11-06), same inputs and protocol; BF16 is plain SGLang with the engine settings of scripts/benchmark_sglang.py. Raw scores of both Fissile arms are bitwise identical to their earlier runs.",
+ "decision": "Four-decimal candidate probabilities, lexical tie break (scripts/benchmark_sglang.py decode_choice)",
+ "questions": 29182,
+ "calibration": {
+  "inputs_sha256": "f2024e97a132d577bf9af07dbf290c59c84bfc55e77b5b8da96b0fbbbd68feaf",
+  "every": 29,
+  "rows": 1007,
+  "tokens": 390491,
+  "forwards": 1007,
+  "margin": 1.0,
+  "sites": 128
+ },
+ "arms": {
+  "bf16": {
+   "accuracy": 0.7637584812555686,
+   "correct": 22288,
+   "heldout_accuracy": 0.7635847382431233,
+   "mean_ms": 134.7331279434864,
+   "accuracy_by_type": {
+    "choice": 0.7635455984414952,
+    "score": 0.5919037199124726,
+    "noul": 0.8084871865527694
+   },
+   "mean_ms_by_input_tokens": {
+    "<=256": {
+     "questions": 13381,
+     "mean_ms": 104.98578434723181
+    },
+    "257-512": {
+     "questions": 13530,
+     "mean_ms": 118.7685736062326
+    },
+    "513-1536": {
+     "questions": 1725,
+     "mean_ms": 160.68623998782772
+    },
+    ">1536": {
+     "questions": 546,
+     "mean_ms": 1177.3714183611394
+    }
+   },
+   "records_sha256": "5081b128a2c8ac63fae465718203d05476623693fb1ac804c59ff34435291bb7",
+   "speedup_vs_bf16": 1.0
+  },
+  "gb10-mixed-v2": {
+   "accuracy": 0.7517990542115003,
+   "correct": 21939,
+   "heldout_accuracy": 0.7514818101153505,
+   "mean_ms": 56.40650922986414,
+   "accuracy_by_type": {
+    "choice": 0.7513291935549332,
+    "score": 0.574398249452954,
+    "noul": 0.799669330394048
+   },
+   "mean_ms_by_input_tokens": {
+    "<=256": {
+     "questions": 13381,
+     "mean_ms": 37.69206173056981
+    },
+    "257-512": {
+     "questions": 13530,
+     "mean_ms": 43.557671833121205
+    },
+    "513-1536": {
+     "questions": 1725,
+     "mean_ms": 69.39408238734241
+    },
+    ">1536": {
+     "questions": 546,
+     "mean_ms": 792.4124218110718
+    }
+   },
+   "records_sha256": "80c84ccae9a1e386071961e88c87ecb7a3382339babd8813f1c8f4e1f59a7ab0",
+   "speedup_vs_bf16": 2.3886095733106036
+  },
+  "gb10-mixed-v2-static": {
+   "accuracy": 0.7500856692481667,
+   "correct": 21889,
+   "heldout_accuracy": 0.749849157054126,
+   "mean_ms": 52.61933421744657,
+   "accuracy_by_type": {
+    "choice": 0.7485693412882016,
+    "score": 0.5765864332603938,
+    "noul": 0.8040782584734086
+   },
+   "mean_ms_by_input_tokens": {
+    "<=256": {
+     "questions": 13381,
+     "mean_ms": 34.422674642040725
+    },
+    "257-512": {
+     "questions": 13530,
+     "mean_ms": 40.91730646862038
+    },
+    "513-1536": {
+     "questions": 1725,
+     "mean_ms": 64.70723579435244
+    },
+    ">1536": {
+     "questions": 546,
+     "mean_ms": 750.3598232283649
+    }
+   },
+   "records_sha256": "02e3863eb02cdfdfb432ea455b30f406155378ff81c22f378b33cd6588e5ad94",
+   "note": "activation_scales with the margin-1 scale file; raw scores identical to the static provider without the GLU pack epilogue",
+   "speedup_vs_bf16": 2.560525136762639
+  },
+  "gb10-mixed-v2-static-margin2": {
+   "accuracy": 0.7483037488862998,
+   "correct": 21837,
+   "heldout_accuracy": 0.7483229813664596,
+   "mean_ms": 53.29893972905566,
+   "accuracy_by_type": {
+    "choice": 0.7471082430293438,
+    "score": 0.5656455142231948,
+    "noul": 0.8024249104436484
+   },
+   "mean_ms_by_input_tokens": {
+    "<=256": {
+     "questions": 13381,
+     "mean_ms": 35.04408519662801
+    },
+    "257-512": {
+     "questions": 13530,
+     "mean_ms": 41.63274723311634
+    },
+    "513-1536": {
+     "questions": 1725,
+     "mean_ms": 66.62079691940892
+    },
+    ">1536": {
+     "questions": 546,
+     "mean_ms": 747.6791399398874
+    }
+   },
+   "records_sha256": "e7a90f75731dedd0a837122e237d9ca2a348d9d25b5735778ac8b33c87acd863",
+   "note": "Earlier build with scales at 2x the calibrated maximum and no GLU pack epilogue; accuracy only"
+  }
+ },
+ "comparison_v2_vs_static": {
+  "only_gb10-mixed-v2": 901,
+  "only_gb10-mixed-v2-static": 851,
+  "z": 1.1945462064187415,
+  "decisions_agree": 26821
+ },
+ "comparison_v2_vs_static_margin2": {
+  "only_gb10-mixed-v2": 924,
+  "only_gb10-mixed-v2-static-margin2": 822,
+  "z": 2.4410577393003097
+ },
+ "queued_throughput": {
+  "note": "First 300 suite inputs of at most 1,536 tokens (171,500 tokens) submitted at once; engine max_running_requests=1; candidate readout; separate engine per run",
+  "req_per_s": {
+   "gb10-mixed-v2": [
+    17.42,
+    17.07,
+    17.14,
+    17.1
+   ],
+   "gb10-mixed-v2-static without GLU pack epilogue": [
+    18.05,
+    17.75,
+    18.04,
+    18.05,
+    17.93,
+    17.92
+   ],
+   "gb10-mixed-v2-static": [
+    18.73,
+    18.55,
+    18.58
+   ]
+  },
+  "mean": {
+   "gb10-mixed-v2": 17.1825,
+   "gb10-mixed-v2-static without GLU pack epilogue": 17.956666666666667,
+   "gb10-mixed-v2-static": 18.62
+  }
+ }
+}

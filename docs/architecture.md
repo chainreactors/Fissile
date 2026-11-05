@@ -71,13 +71,13 @@ GB10, full suite (29,182 questions), scales from every 29th question:
 
 | Provider | Accuracy | Mean latency | Queued req/s¹ |
 |---|---:|---:|---:|
-| `gb10-mixed-v2` | 75.18% | 55.70 ms | 17.21 |
-| `gb10-mixed-v2-static` | 75.01% | 52.68 ms | 18.64 |
+| `gb10-mixed-v2` | 75.18% | 56.41 ms | 17.18 |
+| `gb10-mixed-v2-static` | 75.01% | 52.62 ms | 18.62 |
 
 On the 28,175 questions outside the calibration rows: 74.98% vs 75.15%
 (McNemar z = 1.19). ¹ 300 inputs of at most 1,536 tokens submitted at once,
 candidate readout; short inputs gain less because they are bound by kernel
-launch overhead.
+launch overhead. [Measurements](../bench/README.md#sglang-static-activation-scales).
 
 ## Engine adapters
 

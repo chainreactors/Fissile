@@ -16,10 +16,15 @@ batch size 1. Full evaluation suite: 27,438 requests, 29,182 questions.
 |---|---|---:|---:|---:|
 | SGLang | BF16 | 76.38% | 137.11 ms | 1.00× |
 | SGLang | Fissile `gb10-mixed-v2`, candidate readout | 75.18% | 56.43 ms | **2.43×** |
+| SGLang | Fissile `gb10-mixed-v2`, candidate readout, static activation scales¹ | 75.01% | 52.62 ms | **2.56×** |
 | vLLM | BF16 | 76.42% | 155.34 ms | 1.00× |
 | vLLM | Fissile `gb10-mixed-v2` | 74.69% | 79.73 ms | **1.95×** |
 | PyTorch | BF16 | 76.31% | 235.00 ms | 1.00× |
 | PyTorch | Fissile | 74.72% | 66.07 ms | **3.56×** |
+
+¹ Opt-in. Speedup against BF16 timed in the same session on one GB10, in which
+BF16 took 134.73 ms and `gb10-mixed-v2` 56.41 ms
+([details](bench/README.md#sglang-static-activation-scales)).
 
 [Benchmarks, method and data](bench/README.md)
 
@@ -36,6 +41,9 @@ batch size 1. Full evaluation suite: 27,438 requests, 29,182 questions.
   only the requested candidate tokens.
 - **Prefill CUDA graph** (SGLang, opt-in): replays the transformer body for
   inputs up to 4,096 tokens.
+- **Static activation scales** (SGLang, opt-in): calibrated
+  per-site NVFP4 activation scales replace per-forward amax reductions; the
+  paired GLU writes the packed hidden activation from its epilogue.
 - **Engine adapters**: SGLang and vLLM model adapters and a reversible PyTorch
   overlay share one runtime and scoring API.
 - **Artifact integrity**: manifests with effective-weight hashes, packed-file
@@ -64,6 +72,8 @@ batch size 1. Full evaluation suite: 27,438 requests, 29,182 questions.
 |---|---|
 | `gb10-mixed-v1` | GB10 default; cuBLAS NVFP4 GEMM |
 | `gb10-mixed-v2` | GB10; pinned CUTLASS NVFP4 GEMM |
+| `gb10-mixed-v2-static` | `gb10-mixed-v2` with static activation scales (`activation_scales`) |
+| `gb10-mixed-v2-calibration` | `gb10-mixed-v2` recording activation scales for calibration |
 | `sm120-mixed-v1` | SM120 |
 
 ## Install
@@ -105,6 +115,16 @@ python examples/score_sglang.py --config config.json \
 ```
 
 Each input line contains `id`, `input_ids` and `candidate_token_ids`.
+
+Optional static activation scales: calibrate once, then pass the
+scale file at startup:
+
+```bash
+python scripts/calibrate_activation_scales.py --config config.json \
+  --model /path/to/merged-model --inputs inputs.jsonl --output scales.json
+python examples/score_sglang.py --config config.json --activation-scales scales.json \
+  --model /path/to/merged-model --inputs inputs.jsonl --output results.jsonl
+```
 
 ## Python API
 

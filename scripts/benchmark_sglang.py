@@ -113,7 +113,9 @@ def worker(args):
         else:
             config = args.baseline_config if args.worker == 'bf16' else args.config
             backend = args.candidate_backend if args.worker == 'mixed' and args.candidate_backend else 'sglang'
-            context = open_backend(backend, config, args.model)
+            options = ({'activation_scales': args.activation_scales}
+                       if args.worker == 'mixed' and args.activation_scales else {})
+            context = open_backend(backend, config, args.model, **options)
         started = time.perf_counter()
         with context as session:
             engine = session.session.engine
@@ -154,7 +156,8 @@ class Worker:
         env.pop('FISSILE_CONFIG', None)
         command = [sys.executable, '-S', '-u', '-c', bootstrap, str(Path(__file__).resolve()),
             '--worker', arm, '--model', args.model, '--config', args.config]
-        for name in ['baseline_config', 'baseline_source', 'candidate_source', 'candidate_backend']:
+        for name in ['baseline_config', 'baseline_source', 'candidate_source', 'candidate_backend',
+                     'activation_scales']:
             value = getattr(args, name, None)
             if value:
                 command += ['--' + name.replace('_', '-'), value]
@@ -346,6 +349,7 @@ def main():
     parser.add_argument('--candidate-source', help='Trusted source root containing the candidate fissile package')
     parser.add_argument('--require-exact', action='store_true', help='Fail on any raw-score difference in mixed/mixed comparisons')
     parser.add_argument('--candidate-backend', help='Registered backend for the candidate arm (default sglang)')
+    parser.add_argument('--activation-scales', help='Static activation scale file for the candidate arm')
     args=parser.parse_args()
     worker(args) if args.worker else benchmark(args)
 

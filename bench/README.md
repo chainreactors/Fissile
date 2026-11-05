@@ -128,6 +128,39 @@ questions (mean 534 tokens), 64 concurrent requests through an HTTP gateway.
 
 ¹ The full question set was not scored on SM120.
 
+## SGLang: static activation scales
+
+`activation_scales` on the full evaluation suite with
+`sglang-candidates`, same protocol as above. Scales: largest per-forward global
+scale of each of the 128 activation sites over every 29th question (1,007
+questions, 390,491 tokens), margin 1. BF16, `gb10-mixed-v2` and static scales
+ran one after another on one GB10.
+
+| Execution | Accuracy | Outside calibration rows | Mean latency | Speedup |
+|---|---:|---:|---:|---:|
+| SGLang BF16 | 76.38% | 76.36% | 134.73 ms | 1.00× |
+| `gb10-mixed-v2` | 75.18% | 75.15% | 56.41 ms | 2.39× |
+| `gb10-mixed-v2-static` | 75.01% | 74.98% | 52.62 ms | **2.56×** |
+
+The providers agree on 26,821 decisions; 901 questions are correct only with
+`gb10-mixed-v2`, 851 only with static scales (McNemar z = 1.19). Scales at twice
+the calibrated maximum scored 74.83% (z = 2.44).
+
+| Input tokens | Questions | BF16 | `gb10-mixed-v2` | `gb10-mixed-v2-static` |
+|---|---:|---:|---:|---:|
+| ≤ 256 | 13,381 | 104.99 ms | 37.69 ms | 34.42 ms |
+| 257–512 | 13,530 | 118.77 ms | 43.56 ms | 40.92 ms |
+| 513–1,536 | 1,725 | 160.69 ms | 69.39 ms | 64.71 ms |
+| > 1,536 | 546 | 1,177.37 ms | 792.41 ms | 750.36 ms |
+
+Queued throughput (first 300 suite inputs of at most 1,536 tokens submitted at
+once, one sequence at a time, means of 3–6 engine runs): `gb10-mixed-v2` 17.18
+requests/s; static scales without the GLU pack epilogue 17.96; static scales
+18.62 (1.08×). The GLU pack epilogue is bitwise equal to packing the BF16 GLU
+output, so it does not change scores.
+
+[Results](results/gb10-static-scales.json)
+
 ## Reproduce
 
 Inputs are JSONL rows with `id`, `input_ids`, `candidate_token_ids`, `labels`
@@ -142,7 +175,8 @@ python scripts/benchmark_sglang.py --model /path/to/merged-model \
 
 `--baseline-config` with `--baseline-source`/`--candidate-source` compares two
 Fissile builds; `--require-exact` fails on any raw-score difference;
-`--candidate-backend sglang-candidates` selects candidate readout. The host
+`--candidate-backend sglang-candidates` selects candidate readout;
+`--activation-scales` runs the candidate arm with static activation scales. The host
 policy lists allowed hostnames in `mainline_compute_hosts`. Paired runs need
 80 GiB of free memory for two resident engines.
 
@@ -158,6 +192,7 @@ policy lists allowed hostnames in `mainline_compute_hosts`. Paired runs need
 | [gb10-spark-optimization.json](results/gb10-spark-optimization.json) · [csv](results/gb10-spark-optimization.csv) | Grouped output, pinned GEMM |
 | [gb10-candidate-readout.json](results/gb10-candidate-readout.json) · [csv](results/gb10-candidate-readout.csv) | Candidate-only readout |
 | [gb10-vllm-scope.json](results/gb10-vllm-scope.json) | ScopeJudge vLLM vs SGLang |
+| [gb10-static-scales.json](results/gb10-static-scales.json) | Static activation scales, full suite |
 
 CSV files contain anonymous request indices, timings, labels and raw candidate
 scores; no prompts or weights.
