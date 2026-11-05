@@ -5,7 +5,15 @@ from fissile.config import Config, read_json, contained, sha256
 
 
 class MixedRuntime:
-    """Adapters bind canonical weights; providers supply numerical closures."""
+    """Adapters bind canonical weights; providers supply numerical closures.
+
+    Providers with ``activation_sites`` receive the name of each FP4 activation
+    site: the projection key, a group's first key, or the MLP's (gate, down) keys.
+    """
+
+    @property
+    def activation_sites(self):
+        return bool(getattr(self.provider, "activation_sites", False))
 
     def __init__(self, config):
         self.config = (
@@ -19,6 +27,9 @@ class MixedRuntime:
         self.calls = {}
         self.routes = {}
         self.paired_mlps = set()
+
+    def _sites(self, **sites):
+        return sites if self.activation_sites else {}
 
     def check(self, key, weight):
         from fissile.kernels.packs import weight_hash
@@ -52,7 +63,7 @@ class MixedRuntime:
         else:
             self.check(key, weight)
             packed = None
-        compute = self.provider.projection(selected, weight, packed)
+        compute = self.provider.projection(selected, weight, packed, **self._sites(site=key))
 
         def apply(x):
             shape = x.shape
@@ -121,7 +132,7 @@ class MixedRuntime:
             functions = tuple(self.projection(k, w) for k, w in zip(keys, weights))
             return lambda x: tuple(fn(x) for fn in functions)
         keys, projections = self._bind_group(keys, weights)
-        compute = factory(projections)
+        compute = factory(projections, **self._sites(site=keys[0]))
 
         def apply(x):
             results = compute(self.provider.matrix(x))
@@ -150,7 +161,7 @@ class MixedRuntime:
             return lambda x: concatenate(group(x))
         keys, projections = self._bind_group(keys, weights)
         width = sum(self.metadata[key]["shape"][0] for key in keys)
-        compute = factory(projections)
+        compute = factory(projections, **self._sites(site=keys[0]))
 
         def apply(x):
             result = compute(self.provider.matrix(x))
@@ -174,7 +185,9 @@ class MixedRuntime:
         packs = tuple(
             self.pack(k, w) for k, w in zip(keys, (gate, up, down), strict=True)
         )
-        compute = self.provider.mlp(packs, long_silu=long_silu)
+        compute = self.provider.mlp(
+            packs, long_silu=long_silu, **self._sites(sites=(keys[0], keys[-1]))
+        )
         self.paired_mlps.add(prefix)
 
         def apply(x):
@@ -193,7 +206,10 @@ class MixedRuntime:
             raise ValueError("Incomplete selected-model projection coverage")
         if self.routes != dict(self.expected_routes):
             raise ValueError("Installed routes differ from the selected recipe")
+        sites = getattr(self.provider, "validate_sites", None)
+        extra = {"activation_sites": sites()} if sites else {}
         return {
+            **extra,
             "complete": True,
             "profile": self.profile.name,
             "recipe": self.plan.recipe.name,

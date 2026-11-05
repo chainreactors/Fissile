@@ -52,7 +52,8 @@ class CutlassFP4Gemm:
                 f"CUTLASS FP4 GEMM status {status}: {self.lib.fissile_fp4_gemm_error().decode()}"
             )
 
-    def __call__(self, qa, sa, ga, qb, sb, gb, *, out=None):
+    def __call__(self, qa, sa, ga, qb, sb, gb, *, out=None, alpha=None):
+        """``alpha`` (FP32, one value) may supply ``ga * gb`` precomputed."""
         if qa.ndim != 2 or qb.ndim != 2 or qa.shape[1] != qb.shape[1]:
             raise ValueError("Packed operands must be matrices with matching K")
         m, n, k = qa.shape[0], qb.shape[0], qa.shape[1] * 2
@@ -86,7 +87,15 @@ class CutlassFP4Gemm:
             raise ValueError(
                 "Output must be a row-major BF16 [m, n] view, 16-byte aligned"
             )
-        alpha = ga * gb
+        if alpha is None:
+            alpha = ga * gb
+        elif (
+            alpha.dtype != torch.float32
+            or alpha.numel() != 1
+            or alpha.device != device
+            or not alpha.is_contiguous()
+        ):
+            raise ValueError("Expected one precomputed FP32 alpha on the operand device")
         self._check(
             self.lib.fissile_fp4_gemm_run(
                 out.data_ptr(),

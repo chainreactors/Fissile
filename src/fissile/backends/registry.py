@@ -90,7 +90,12 @@ register_backend(
     BackendSpec(
         "sglang-candidates",
         "fissile.backends.sglang.engine:open_candidate_session",
-        _INITIAL | {("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2")},
+        _INITIAL
+        | {
+            ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2"),
+            ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2-calibration"),
+            ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2-static"),
+        },
         workload="single-request candidate-normalized scoring",
     )
 )
@@ -109,6 +114,8 @@ register_backend(
         | {
             ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "sm120-mixed-v1"),
             ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2"),
+            ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2-calibration"),
+            ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2-static"),
         },
     )
 )

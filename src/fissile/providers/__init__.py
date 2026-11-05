@@ -127,3 +127,23 @@ register_provider(
         + (ResourceSpec("fp4_gemm_library", "build_receipt"),),
     )
 )
+
+# Static NVFP4 activation scales (see providers/gb10_static.py):
+# calibration keeps the gb10-mixed-v2 arithmetic and records per-site scales;
+# static uses a calibrated scale file instead of per-forward tensor amax.
+register_provider(
+    replace(
+        get_provider("gb10-mixed-v2"),
+        name="gb10-mixed-v2-calibration",
+        factory="fissile.providers.gb10_static:GB10CalibrationProvider",
+    )
+)
+register_provider(
+    replace(
+        get_provider("gb10-mixed-v2"),
+        name="gb10-mixed-v2-static",
+        factory="fissile.providers.gb10_static:GB10StaticProvider",
+        resources=get_provider("gb10-mixed-v2").resources
+        + (ResourceSpec("activation_scales", "sha256"),),
+    )
+)
