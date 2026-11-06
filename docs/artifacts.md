@@ -13,6 +13,34 @@ Fissile loads external artifacts; none are stored in this repository.
 
 ## Prepare packs
 
+`fissile quantize` runs native BF16 forwards of a local model over calibration
+inputs and prepares every projection pack on the GPU. It needs Torch,
+Transformers, Triton and safetensors (the `torch` extra).
+
+```bash
+fissile quantize --model /path/to/merged-model --calibration calibration.jsonl \
+  --packs-dir artifacts/packs --output artifacts/manifest.json \
+  [--profile qwen3.5-dense-9b] [--recipe mixed-fp4-fp8-w4a16-v1]
+```
+
+| Step | Method |
+|---|---|
+| Calibration inputs | JSONL, one tokenized input per line (`input_ids`); other fields are ignored. Use representative, unlabeled inputs, separate from evaluation data |
+| Input moments | Projections sharing an input share one moment. Each forward contributes at most 256 evenly spaced rows: FP32 Gram products, FP64 accumulation. The output head sees the final position only |
+| Block scales | Each 16-value block takes the E4M3 scale with the lowest error under its 16×16 input moment |
+| GPTQ | Columns in descending input-moment order, 1% damping, FP64 inverse |
+| Output | `<packs-dir>/<projection>.safetensors` and a manifest with effective-weight and pack hashes |
+
+For the 9B profile on one GB10, 96 calibration inputs (37,230 tokens) take 15
+minutes including model load, with 72 GiB peak GPU memory (model plus FP64
+input moments); the packs score like the published ones
+([measurements](../bench/README.md#pack-preparation)).
+
+`fissile.quantization.prepare.prepare_projection(weight, hessian, output)`
+prepares one projection from its full input moment.
+
+Packs prepared elsewhere:
+
 ```bash
 # Validate existing packs and write a manifest
 fissile import-packs --prepared /path/to/prepared-packs --output artifacts/manifest.json \
@@ -20,12 +48,6 @@ fissile import-packs --prepared /path/to/prepared-packs --output artifacts/manif
 # Copy validated packs into a portable directory
 fissile export-bundle --manifest artifacts/manifest.json --artifacts-dir /path/to/packs --output /path/to/bundle
 ```
-
-To quantize new weights, call
-`fissile.quantization.prepare.prepare_projection(weight, hessian, output)` with
-contiguous CUDA BF16 effective weights and their full input second moments
-from representative calibration inputs. It runs full-Hessian GPTQ with 1%
-damping in the original column order. Disable TF32.
 
 ## Configuration file
 
@@ -107,3 +129,4 @@ On GB10, CUDA reports `MemFree` as free memory, so clean page cache from
 recently read checkpoints counts as used. Check `MemFree` before starting an
 engine; dropping cached pages of your own files with
 `posix_fadvise(POSIX_FADV_DONTNEED)` makes that memory available to CUDA.
+`fissile quantize` drops the checkpoint's cached pages after loading the model.

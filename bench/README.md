@@ -161,6 +161,24 @@ output, so it does not change scores.
 
 [Results](results/gb10-static-scales.json)
 
+## Pack preparation
+
+`fissile quantize` on one GB10 with 96 calibration questions (every 304th suite
+question, 37,230 tokens): 15.4 minutes including model load, 72.3 GiB peak
+allocated GPU memory. Full suite with `sglang-candidates` and `gb10-mixed-v2`:
+
+| Packs | Accuracy | Outside calibration rows |
+|---|---:|---:|
+| Packs of the results above (96 separate calibration requests) | 75.18% | 75.18% |
+| `fissile quantize` | 75.36% | 75.35% |
+
+The two pack sets agree on 26,453 decisions; 1,024 questions are correct only
+with the new packs, 972 only with the others (McNemar z = 1.16). From identical
+input moments, the preparation reproduces the published packs byte for byte
+(11 projections covering every shape and route, including the output head).
+
+[Results](results/gb10-quantize.json)
+
 ## Reproduce
 
 Inputs are JSONL rows with `id`, `input_ids`, `candidate_token_ids`, `labels`
@@ -191,6 +209,7 @@ Paired runs need an idle GPU and 80 GiB of free memory for two resident engines.
 | [gb10-candidate-readout.json](results/gb10-candidate-readout.json) · [csv](results/gb10-candidate-readout.csv) | Candidate-only readout |
 | [gb10-vllm-scope.json](results/gb10-vllm-scope.json) | ScopeJudge vLLM vs SGLang |
 | [gb10-static-scales.json](results/gb10-static-scales.json) | Static activation scales, full suite |
+| [gb10-quantize.json](results/gb10-quantize.json) | `fissile quantize` packs, full suite |
 
 CSV files contain anonymous request indices, timings, labels and raw candidate
 scores; no prompts or weights.

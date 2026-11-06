@@ -17,7 +17,7 @@ quantization -> kernels
 | `backends/layouts.py` | Engine module layout of each model profile, shared by all adapters |
 | `backends/` | Engine adapters: resource lifecycle and scoring sessions |
 | `kernels/` | Tensor math: NVFP4/FP8 packing, GEMMs, paired GLU, W4A16 head |
-| `quantization/` | Offline GPTQ projection preparation |
+| `quantization/` | Calibration input moments and GPTQ pack preparation (`fissile quantize`) |
 
 A model profile and a recipe form an `ExecutionPlan`. The selected provider
 validates the plan's routes, fusions, dtype and shape alignment against the

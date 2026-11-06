@@ -38,6 +38,8 @@ class Layout:
     # Per-engine module path overrides, e.g. {"sglang": {"self_attn.qkv_proj": "qkv_proj"}}.
     paths: dict = field(default_factory=dict)
     layer_key: str = "layers.{}"
+    # Transformers auto class that loads the model with the module names above.
+    hf_class: str = "AutoModelForCausalLM"
 
 
 _LAYOUTS = {}
@@ -54,6 +56,33 @@ def get_layout(profile):
         return _LAYOUTS[profile]
     except KeyError:
         raise ValueError("No engine layout for model profile: " + str(profile)) from None
+
+
+def input_groups(profile):
+    """Canonical projection keys grouped by shared input.
+
+    One group per fused engine linear (its projections consume one input) and
+    one for the output head; every profile projection appears exactly once.
+    """
+    layout = get_layout(profile.name)
+    shapes = profile.shapes()
+    groups = []
+    index = 0
+    while any(k.startswith(layout.layer_key.format(index) + ".") for k in shapes):
+        prefix = layout.layer_key.format(index)
+        for linear in layout.linears:
+            keys = tuple(f"{prefix}.{k}" for k in linear.keys)
+            present = [k in shapes for k in keys]
+            if any(present):
+                if not all(present):
+                    raise ValueError(f"Profile covers only part of {prefix}.{linear.path}")
+                groups.append(keys)
+        index += 1
+    groups.append((profile.head,))
+    covered = [k for group in groups for k in group]
+    if len(covered) != len(set(covered)) or set(covered) != set(shapes):
+        raise ValueError("Engine layout does not group every profile projection by input")
+    return groups
 
 
 def module_at(owner, path):
@@ -160,6 +189,7 @@ QWEN35_DENSE = Layout(
     ),
     hf_prefix="model.language_model.",
     hf_head="lm_head",
+    hf_class="AutoModelForImageTextToText",
     # SGLang's full-attention decoder layer owns its projections directly.
     paths={"sglang": {"self_attn.qkv_proj": "qkv_proj", "self_attn.o_proj": "o_proj"}},
 )

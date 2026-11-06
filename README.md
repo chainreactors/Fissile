@@ -48,8 +48,9 @@ BF16 took 134.73 ms and `gb10-mixed-v2` 56.41 ms
   overlay share one runtime and scoring API.
 - **Artifact integrity**: manifests with effective-weight hashes, packed-file
   hashes and shape checks; build receipts for native libraries.
-- **Weight preparation**: full-Hessian GPTQ projection preparation and import of
-  existing NVFP4 packs.
+- **Weight preparation**: `fissile quantize` calibrates a BF16 model and prepares
+  every projection pack (input-moment-weighted block scales, GPTQ); existing
+  NVFP4 packs can be imported.
 
 ## Supported configurations
 
@@ -99,11 +100,16 @@ fissile build-fp4-gemm --output artifacts/libfissile_fp4_gemm.so --cutlass-dir /
 python scripts/build_silu_table.py --output artifacts/silu.safetensors
 ```
 
-Import prepared projection packs and write a manifest:
+Prepare the projection packs from a merged BF16 model and calibration inputs
+(GPU):
 
 ```bash
-fissile import-packs --prepared /path/to/prepared-packs --output artifacts/manifest.json
+fissile quantize --model /path/to/merged-model --calibration calibration.jsonl \
+  --packs-dir artifacts/packs --output artifacts/manifest.json
 ```
+
+Each calibration line contains the `input_ids` of one representative, unlabeled
+input ([details](docs/artifacts.md#prepare-packs)).
 
 Copy [`examples/config-v2-gb10-cutlass.json`](examples/config-v2-gb10-cutlass.json),
 set the paths and the SiLU table hash, then validate and score:

@@ -15,6 +15,17 @@ def main():
     i.add_argument("--output", required=True)
     i.add_argument("--profile", help="Model profile (default: qwen3.5-dense-9b)")
     i.add_argument("--recipe", help="Precision recipe (default: mixed-fp4-fp8-w4a16-v1)")
+    q = sub.add_parser(
+        "quantize",
+        help="Calibrate a BF16 model and prepare every projection pack and a manifest (GPU)",
+    )
+    q.add_argument("--model", required=True, help="Local BF16 model directory")
+    q.add_argument("--calibration", required=True, help="JSONL, one tokenized input (input_ids) per line")
+    q.add_argument("--packs-dir", required=True, help="New directory for the projection packs")
+    q.add_argument("--output", required=True, help="New manifest path")
+    q.add_argument("--profile", help="Model profile (default: qwen3.5-dense-9b)")
+    q.add_argument("--recipe", help="Precision recipe (default: mixed-fp4-fp8-w4a16-v1)")
+    q.add_argument("--max-rows-per-forward", type=int, default=256, help="Sampled input rows per forward (1-256)")
     v = sub.add_parser(
         "validate", help="Verify every external packed weight and configuration"
     )
@@ -51,6 +62,27 @@ def main():
             a.recipe or DEFAULT_RECIPE,
         )
         print(json.dumps({"projections": len(m["projections"]), "manifest": a.output}))
+    elif a.command == "quantize":
+        import sys
+        from .models import DEFAULT_PROFILE
+        from .recipes import DEFAULT_RECIPE
+        from .backends.quantize import quantize
+
+        def progress(stage, done, total):
+            if done == total or done % 8 == 0:
+                print(f"{stage} {done}/{total}", file=sys.stderr, flush=True)
+
+        m = quantize(
+            a.model,
+            a.calibration,
+            a.packs_dir,
+            a.output,
+            profile=a.profile or DEFAULT_PROFILE,
+            recipe=a.recipe or DEFAULT_RECIPE,
+            max_rows=a.max_rows_per_forward,
+            progress=progress,
+        )
+        print(json.dumps({"projections": len(m["projections"]), "manifest": a.output, "packs_dir": a.packs_dir}))
     elif a.command == "validate":
         from .config import Config
 

@@ -1,0 +1,78 @@
+{
+ "schema": "fissile-quantize-v1",
+ "date": "2026-11-06",
+ "hardware": "NVIDIA GB10 (SM121), 128 GB unified memory; CUDA 13.0",
+ "software": "Torch 2.13.0+cu130, SGLang 0.5.21, Transformers 5.12.1, Triton 3.7.1, CuTe DSL 4.8.0",
+ "command": "fissile quantize --model MODEL --calibration calibration.jsonl --packs-dir packs --output manifest.json",
+ "calibration": {
+  "questions": 96,
+  "selection": "Every 304th question of the full evaluation suite",
+  "tokens": 37230,
+  "sha256": "7acc3187721d2e6a83ef8cced24e9c95806d1c0c2474abbcae64f961c7329c90",
+  "max_rows_per_forward": 256
+ },
+ "preparation": {
+  "method": "full-h16-order",
+  "projections": 201,
+  "elapsed_s": 925.7917101969942,
+  "includes": "model load, calibration forwards, pack preparation and serialization",
+  "peak_allocated_gib": 72.30865335464478,
+  "peak_reserved_gib": 83.408203125
+ },
+ "evaluation": {
+  "questions": 29182,
+  "backend": "sglang-candidates",
+  "provider": "gb10-mixed-v2",
+  "protocol": "One engine; 48-request warm-up, then one timed pass over every question (CheckedSession.score).",
+  "decision": "Four-decimal candidate probabilities, lexical tie break (scripts/benchmark_sglang.py decode_choice)",
+  "heldout": "Questions outside the calibration rows (29,086)"
+ },
+ "arms": {
+  "published-packs": {
+   "accuracy": 0.7517990542115003,
+   "correct": 21939,
+   "heldout_accuracy": 0.7517706112906553,
+   "accuracy_by_type": {
+    "choice": 0.7513291935549332,
+    "score": 0.574398249452954,
+    "noul": 0.799669330394048
+   },
+   "records_sha256": "80c84ccae9a1e386071961e88c87ecb7a3382339babd8813f1c8f4e1f59a7ab0",
+   "note": "Packs used for the other gb10-mixed-v2 results; 96 separate calibration requests"
+  },
+  "fissile-quantize": {
+   "accuracy": 0.7535809745733671,
+   "correct": 21991,
+   "heldout_accuracy": 0.7535240321804304,
+   "accuracy_by_type": {
+    "choice": 0.7525467754373149,
+    "score": 0.5831509846827133,
+    "noul": 0.8035271424634886
+   },
+   "records_sha256": "96c0913270c90c391ca7bd8d022ca46eb450132aeda4e82f29d30bd4c04bc517"
+  }
+ },
+ "comparison": {
+  "decisions_agree": 26453,
+  "only_fissile_quantize": 1024,
+  "only_published": 972,
+  "mcnemar_z": 1.1639198506931976
+ },
+ "bitwise_reproduction": {
+  "note": "Preparation from the input moments of the published packs reproduces them byte for byte",
+  "projections": [
+   "layers.0.linear_attn.in_proj_qkv",
+   "layers.0.linear_attn.in_proj_z",
+   "layers.0.linear_attn.out_proj",
+   "layers.0.mlp.down_proj",
+   "layers.0.mlp.gate_proj",
+   "layers.0.mlp.up_proj",
+   "layers.3.self_attn.k_proj",
+   "layers.3.self_attn.o_proj",
+   "layers.3.self_attn.q_proj",
+   "layers.3.self_attn.v_proj",
+   "lm_head"
+  ],
+  "identical": true
+ }
+}
