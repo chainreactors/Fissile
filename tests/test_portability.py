@@ -2,7 +2,6 @@ import json, subprocess, sys, tempfile, unittest, ast, os
 from pathlib import Path
 from fissile.config import contained, validate_manifest, Config, sha256
 from fissile.models.qwen35 import projection_shapes, route
-from fissile.artifacts import import_packs
 
 
 def fixture(root):
@@ -86,43 +85,6 @@ class Portability(unittest.TestCase):
             m["projections"][b]["path"] = m["projections"][a]["path"]
             with self.assertRaises(ValueError):
                 validate_manifest(m, root, verify_files=False)
-
-    def test_pack_import(self):
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            m = fixture(root)
-            prepared = {
-                (
-                    "base_model.model.lm_head"
-                    if k == "lm_head"
-                    else "base_model.model.model.language_model." + k
-                ): e
-                for k, e in m["projections"].items()
-            }
-            (root / "summary.json").write_text(
-                json.dumps(
-                    dict(
-                        complete=True,
-                        method="full-h16-order",
-                        adapter_sha256_after="b" * 64,
-                        projections=prepared,
-                    )
-                )
-            )
-            (root / "protocol.json").write_text(
-                json.dumps(
-                    dict(
-                        method="full-h16-order",
-                        labels_consumed=False,
-                        holdout_consumed=False,
-                        adapter_sha256="b" * 64,
-                    )
-                )
-            )
-            imported = import_packs(root, root / "portable.json")
-            self.assertEqual(imported["projections"], m["projections"])
-            with self.assertRaises(FileExistsError):
-                import_packs(root, root / "portable.json")
 
     def test_config_relative_paths_and_binary_receipt(self):
         with tempfile.TemporaryDirectory() as d:

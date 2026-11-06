@@ -8,13 +8,6 @@ def main():
     p = argparse.ArgumentParser(prog="fissile")
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="command", required=True)
-    i = sub.add_parser(
-        "import-packs", help="Validate prepared projection packs and write a portable manifest"
-    )
-    i.add_argument("--prepared", required=True)
-    i.add_argument("--output", required=True)
-    i.add_argument("--profile", help="Model profile (default: qwen3.5-dense-9b)")
-    i.add_argument("--recipe", help="Precision recipe (default: mixed-fp4-fp8-w4a16-v1)")
     q = sub.add_parser(
         "quantize",
         help="Calibrate a BF16 model and prepare every projection pack and a manifest (GPU)",
@@ -50,19 +43,7 @@ def main():
     e.add_argument("--output", required=True)
     sub.add_parser("backends")
     a = p.parse_args()
-    if a.command == "import-packs":
-        from .artifacts import import_packs
-        from .models import DEFAULT_PROFILE
-        from .recipes import DEFAULT_RECIPE
-
-        m = import_packs(
-            a.prepared,
-            a.output,
-            a.profile or DEFAULT_PROFILE,
-            a.recipe or DEFAULT_RECIPE,
-        )
-        print(json.dumps({"projections": len(m["projections"]), "manifest": a.output}))
-    elif a.command == "quantize":
+    if a.command == "quantize":
         import sys
         from .models import DEFAULT_PROFILE
         from .recipes import DEFAULT_RECIPE

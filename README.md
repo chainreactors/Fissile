@@ -49,8 +49,7 @@ BF16 took 134.73 ms and `gb10-mixed-v2` 56.41 ms
 - **Artifact integrity**: manifests with effective-weight hashes, packed-file
   hashes and shape checks; build receipts for native libraries.
 - **Weight preparation**: `fissile quantize` calibrates a BF16 model and prepares
-  every projection pack (input-moment-weighted block scales, GPTQ); existing
-  NVFP4 packs can be imported.
+  every projection pack (input-moment-weighted block scales, GPTQ).
 
 ## Supported configurations
 

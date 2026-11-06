@@ -104,8 +104,7 @@ binds the output head (`runtime.profile.head`).
 
 4. **Support and weights**: register a recipe and provider whose `profiles`
    include the model, add the backend combinations, then prepare packs with
-   `fissile quantize --profile my-model --recipe my-recipe` or import existing
-   ones with `fissile import-packs --profile my-model --recipe my-recipe`.
+   `fissile quantize --profile my-model --recipe my-recipe`.
 
 ## Other extension points
 

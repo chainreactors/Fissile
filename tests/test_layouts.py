@@ -1,16 +1,11 @@
-"""CPU-only checks for shared engine layouts, profile heads and pack import."""
+"""CPU-only checks for shared engine layouts, profile heads and provider limits."""
 from dataclasses import replace
-import json
-from pathlib import Path
-import tempfile
 from types import SimpleNamespace
 import unittest
 
-from fissile.artifacts import canonical_key, import_packs
 from fissile.backends.layouts import QWEN35_DENSE, get_layout, install_fused, register_layout
-from fissile.models import MLP, ModelProfile, Projection, get_profile, register_profile
+from fissile.models import MLP, ModelProfile, Projection, get_profile
 from fissile.providers import DEFAULT_PROVIDER, get_provider
-from fissile.recipes import Recipe, register_recipe
 
 
 class Weight:
@@ -135,43 +130,6 @@ class ProfileHead(unittest.TestCase):
                             (Projection("a", (8, 8), "head"), Projection("b", (8, 8), "head"))]:
             with self.assertRaises(ValueError):
                 ModelProfile("t", projections, (), 16, 4).head
-
-
-class PackImport(unittest.TestCase):
-    def test_canonical_key_ignores_module_prefixes(self):
-        keys = {"layers.1.mlp.up_proj": 0, "layers.11.mlp.up_proj": 0, "lm_head": 0}
-        self.assertEqual(canonical_key("base_model.model.lm_head", keys), "lm_head")
-        self.assertEqual(canonical_key("decoder.layers.11.mlp.up_proj", keys), "layers.11.mlp.up_proj")
-        self.assertEqual(canonical_key("layers.1.mlp.up_proj", keys), "layers.1.mlp.up_proj")
-        for name in ("decoder.layers.2.mlp.up_proj", "lm_head_extra"):
-            with self.assertRaises(ValueError):
-                canonical_key(name, keys)
-
-    def test_other_profile_and_prefix(self):
-        profile = ModelProfile("test-pack-import", (Projection("block.proj", (128, 128)),
-                                                     Projection("readout", (128, 128), "head")), (), 128, 4)
-        register_profile(profile)
-        register_recipe(Recipe("test-pack-recipe", frozenset({profile.name}),
-                               (("body", "fp4"), ("head", "w4a16")), "test-preparation"))
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            entries = {}
-            for key in ("block.proj", "readout"):
-                (root / key).write_bytes(b"pack")
-                from fissile.config import sha256
-                entries["wrapper.decoder." + key] = dict(path=key, shape=[128, 128], sha256=sha256(root / key),
-                                                         effective_weight_sha256="e" * 64)
-            (root / "summary.json").write_text(json.dumps(dict(
-                complete=True, method="test-preparation", adapter_sha256_after="b" * 64, projections=entries)))
-            (root / "protocol.json").write_text(json.dumps(dict(
-                method="test-preparation", labels_consumed=False, holdout_consumed=False, adapter_sha256="b" * 64)))
-            with self.assertRaises(ValueError):
-                import_packs(root, root / "default-recipe.json", profile.name)
-            manifest = import_packs(root, root / "manifest.json", profile.name, "test-pack-recipe")
-            self.assertEqual(manifest["recipe"], "test-pack-recipe")
-            self.assertEqual(manifest["method"], "test-preparation")
-            self.assertEqual(manifest["profile"], profile.name)
-            self.assertEqual(sorted(manifest["projections"]), ["block.proj", "readout"])
 
 
 class PairedMlpLimit(unittest.TestCase):

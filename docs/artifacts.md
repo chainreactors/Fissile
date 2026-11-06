@@ -39,14 +39,10 @@ input moments); the packs score like the published ones
 `fissile.quantization.prepare.prepare_projection(weight, hessian, output)`
 prepares one projection from its full input moment.
 
-Packs prepared elsewhere:
+Copy the packs of a manifest into a portable directory:
 
 ```bash
-# Validate existing packs and write a manifest
-fissile import-packs --prepared /path/to/prepared-packs --output artifacts/manifest.json \
-  [--profile qwen3.5-dense-9b] [--recipe mixed-fp4-fp8-w4a16-v1]
-# Copy validated packs into a portable directory
-fissile export-bundle --manifest artifacts/manifest.json --artifacts-dir /path/to/packs --output /path/to/bundle
+fissile export-bundle --manifest artifacts/manifest.json --artifacts-dir artifacts/packs --output /path/to/bundle
 ```
 
 ## Configuration file
