@@ -72,12 +72,6 @@
   "timing": "CheckedSession.score, including SGLang IPC; tokenization, external worker IPC, startup and warmup excluded. Two mixed-precision engines resident, one GPU call at a time.",
   "source_hashes": {
     "baseline": {
-      "chainreactor_fissile.egg-info/PKG-INFO": "76e956611e98de69201084cc659cbeef9409f1e4c8ed4a4c80433fecbc26ac53",
-      "chainreactor_fissile.egg-info/SOURCES.txt": "2ff88eb1b9ede787f2a7169a762def68db6ebe995212d2ffcd0f3fd262078969",
-      "chainreactor_fissile.egg-info/dependency_links.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
-      "chainreactor_fissile.egg-info/entry_points.txt": "430cfee048edc794f7d668ab3b5dedf43d70843a7593b82f2d70a29d2951d5c7",
-      "chainreactor_fissile.egg-info/requires.txt": "5d533db515548ce2fd7dac7877144c3f3f2d87b41e6e8791cb7b709ca34c8f3e",
-      "chainreactor_fissile.egg-info/top_level.txt": "c47be1996eae9b2d5117869da961122a2ef3a11a1087169db890b432289b922f",
       "fissile/__init__.py": "3d4bc0a01ec33067e3e9f53cfc2bc564b8ac0832885bef1dceffa58f102fdb9c",
       "fissile/_vendor/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
       "fissile/_vendor/sm12x/LICENSE.flashinfer": "cb67c224f503e0a063908950b12f89a7280c6e527dcffac972aa114e4bf3c5de",
@@ -129,12 +123,6 @@
       "fissile/runtime/mixed.py": "5c64207d5a280cf53c174ba844b976dd5f4dbe080c1da5b5b4fac45b6e95eedf"
     },
     "candidate": {
-      "chainreactor_fissile.egg-info/PKG-INFO": "76e956611e98de69201084cc659cbeef9409f1e4c8ed4a4c80433fecbc26ac53",
-      "chainreactor_fissile.egg-info/SOURCES.txt": "2ff88eb1b9ede787f2a7169a762def68db6ebe995212d2ffcd0f3fd262078969",
-      "chainreactor_fissile.egg-info/dependency_links.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
-      "chainreactor_fissile.egg-info/entry_points.txt": "430cfee048edc794f7d668ab3b5dedf43d70843a7593b82f2d70a29d2951d5c7",
-      "chainreactor_fissile.egg-info/requires.txt": "5d533db515548ce2fd7dac7877144c3f3f2d87b41e6e8791cb7b709ca34c8f3e",
-      "chainreactor_fissile.egg-info/top_level.txt": "c47be1996eae9b2d5117869da961122a2ef3a11a1087169db890b432289b922f",
       "fissile/__init__.py": "3d4bc0a01ec33067e3e9f53cfc2bc564b8ac0832885bef1dceffa58f102fdb9c",
       "fissile/_vendor/__init__.py": "6e323e6cdd2fef42f53dbc95e71763602eef55ae750a70058bac57a17930d751",
       "fissile/_vendor/sm12x/LICENSE.flashinfer": "cb67c224f503e0a063908950b12f89a7280c6e527dcffac972aa114e4bf3c5de",

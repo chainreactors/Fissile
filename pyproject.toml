@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "chainreactor-fissile"
+name = "chainreactors-fissile"
 version = "0.1.0a1"
 description = "Mixed-precision inference for SGLang, vLLM and PyTorch on NVIDIA GB10"
 readme = "README.md"
