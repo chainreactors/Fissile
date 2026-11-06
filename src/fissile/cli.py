@@ -9,7 +9,7 @@ def main():
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="command", required=True)
     i = sub.add_parser(
-        "import-legacy", help="Validate legacy GPTQ files and write a portable manifest"
+        "import-packs", help="Validate prepared projection packs and write a portable manifest"
     )
     i.add_argument("--prepared", required=True)
     i.add_argument("--output", required=True)
@@ -32,19 +32,19 @@ def main():
     g.add_argument("--nvcc")
     e = sub.add_parser(
         "export-bundle",
-        help="Copy approved external weight files; not a Git publication",
+        help="Copy the manifest's projection packs into a portable directory",
     )
     e.add_argument("--manifest", required=True)
     e.add_argument("--artifacts-dir", required=True)
     e.add_argument("--output", required=True)
     sub.add_parser("backends")
     a = p.parse_args()
-    if a.command == "import-legacy":
-        from .artifacts import import_legacy
+    if a.command == "import-packs":
+        from .artifacts import import_packs
         from .models import DEFAULT_PROFILE
         from .recipes import DEFAULT_RECIPE
 
-        m = import_legacy(
+        m = import_packs(
             a.prepared,
             a.output,
             a.profile or DEFAULT_PROFILE,

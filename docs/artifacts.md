@@ -15,7 +15,7 @@ Fissile loads external artifacts; none are stored in this repository.
 
 ```bash
 # Validate existing packs and write a manifest
-fissile import-legacy --prepared /path/to/prepared-packs --output artifacts/manifest.json \
+fissile import-packs --prepared /path/to/prepared-packs --output artifacts/manifest.json \
   [--profile qwen3.5-dense-9b] [--recipe mixed-fp4-fp8-w4a16-v1]
 # Copy validated packs into a portable directory
 fissile export-bundle --manifest artifacts/manifest.json --artifacts-dir /path/to/packs --output /path/to/bundle
@@ -51,7 +51,8 @@ selected kernel provider: `gb10-mixed-v1` and `sm120-mixed-v1` take
 `tensorfold_library` and `silu_lut`; `gb10-mixed-v2` also takes
 `fp4_gemm_library`. Each SGLang process writes installation and coverage
 reports to a new `report_dir`. `fissile validate --config config.json` checks
-every artifact. Legacy `fissile-config-v1` files remain accepted.
+every artifact. `fissile-config-v1` files ([example](../examples/config.json)) are
+also accepted and select `gb10-mixed-v1`.
 
 ## Build native libraries
 

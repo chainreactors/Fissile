@@ -9,7 +9,7 @@ the first projection key that consumes it (``...mlp.gate_proj`` for the MLP inpu
 calibrated scale file instead of the per-forward tensor amax: one pack launch per
 activation, and each GEMM's alpha (activation scale x weight scale) computed once.
 The paired GLU writes the packed MLP hidden activation from its epilogue. Scores
-differ from gb10-mixed-v2 and need their own accuracy qualification.
+differ from gb10-mixed-v2 and need their own accuracy evaluation.
 
 ``gb10-mixed-v2-calibration`` keeps the gb10-mixed-v2 arithmetic exactly and records
 the largest per-forward global scale of every site (see
@@ -129,7 +129,7 @@ class _SiteProvider(GB10CutlassProvider):
 
     def mlp(self, packs, *, long_silu, sites=None):
         if long_silu not in ("torch", "rounded"):
-            raise ValueError("Choose an explicit qualified long-input SiLU implementation")
+            raise ValueError("Choose an explicit long-input SiLU implementation")
         if not isinstance(sites, tuple) or len(sites) != 2:
             raise ValueError("The MLP needs (input, hidden) activation sites")
         g, u, d = packs

@@ -332,7 +332,7 @@ class RegisterPairedGemmKernel:
                 or mma_k != 64 or tile_k not in (None, 128) or swap_ab or split_k_slices != 1
                 or load_path != "tma" or enable_pdl or not single_work_tile_per_cta
                 or use_m1_non_tma_a or use_m1_non_tma_c or use_m1_non_tma_sfa):
-            raise ValueError("Paired v1 only supports qualified full-grid 128x128x128 NVFP4")
+            raise ValueError("Paired v1 only supports full-grid 128x128x128 NVFP4")
         self.acc_dtype = cutlass.Float32
         self.sf_vec_size = sf_vec_size
         self.mma_k = mma_k

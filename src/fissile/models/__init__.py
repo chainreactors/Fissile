@@ -1,4 +1,4 @@
-"""CPU-only model discovery. Registration does not imply engine qualification."""
+"""CPU-only model discovery. A registered profile runs only on backends that declare it."""
 
 from .spec import MLP, ModelProfile, Projection, get_profile, register_profile
 from .qwen35 import SPEC

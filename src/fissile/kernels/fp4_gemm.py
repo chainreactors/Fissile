@@ -2,7 +2,7 @@
 
 Same operands, scale layout and FP32 ``alpha = global_a * global_b`` as
 ``fissile.kernels.nvfp4.matmul``; every output accumulates its full K range in
-one CTA. Bitwise equality with the cuBLAS path must be qualified per deployment.
+one CTA. Bitwise equality with the cuBLAS path must be verified per deployment.
 """
 
 import ctypes

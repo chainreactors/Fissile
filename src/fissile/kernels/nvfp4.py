@@ -1,8 +1,7 @@
-"""Experimental dense NVFP4 W4A4 using the installed PyTorch cuBLAS interface.
+"""Dense NVFP4 W4A4 using the installed PyTorch cuBLAS interface.
 
 Format: E2M1 values, E4M3 scales per 16 values, FP32 global scale, and
 SWIZZLE_32_4_4 scales as documented by NVIDIA cuBLAS. No weight file is changed.
-This is approximate inference, not a replacement admitted for the product.
 """
 
 import torch

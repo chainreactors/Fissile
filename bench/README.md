@@ -169,16 +169,14 @@ and `expected`.
 ```bash
 python scripts/benchmark_sglang.py --model /path/to/merged-model \
   --config /path/to/fissile.json --inputs /path/to/inputs.jsonl \
-  --output /path/to/new-run --host-policy /path/to/host-policy.json \
-  --gpu-lock /path/to/gpu.lock --rounds 3
+  --output /path/to/new-run --rounds 3
 ```
 
 `--baseline-config` with `--baseline-source`/`--candidate-source` compares two
 Fissile builds; `--require-exact` fails on any raw-score difference;
 `--candidate-backend sglang-candidates` selects candidate readout;
-`--activation-scales` runs the candidate arm with static activation scales. The host
-policy lists allowed hostnames in `mainline_compute_hosts`. Paired runs need
-80 GiB of free memory for two resident engines.
+`--activation-scales` runs the candidate arm with static activation scales.
+Paired runs need an idle GPU and 80 GiB of free memory for two resident engines.
 
 ## Data
 

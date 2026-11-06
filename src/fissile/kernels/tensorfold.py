@@ -1,4 +1,4 @@
-"""Experimental unmodified TensorFold W4A16 prompt kernels, never model defaults.
+"""Unmodified TensorFold W4A16 prompt kernels.
 
 Offline packing converts this project's NVFP4 codes/scales without requantizing.
 Inference retains BF16 activations. This is NOT arithmetic-equivalent to W4A4.

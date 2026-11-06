@@ -1,4 +1,4 @@
-"""Qualified GB10 numerical implementation, independent of model and engine layout."""
+"""GB10 numerical implementation, independent of model and engine layout."""
 
 import torch
 from safetensors.torch import load_file
@@ -76,7 +76,7 @@ class GB10Provider:
             def compute(activation, rows, out=None):
                 if rows != 1 or out is not None:
                     raise ValueError(
-                        "Only final-token, full-vocabulary scoring is qualified"
+                        "Only final-token, full-vocabulary scoring is supported"
                     )
                 return self.kernel.linear(activation, packed, tactic="lean")
 
@@ -227,7 +227,7 @@ class GB10Provider:
     def mlp(self, packs, *, long_silu):
         if long_silu not in ("torch", "rounded"):
             raise ValueError(
-                "Choose an explicit qualified long-input SiLU implementation"
+                "Choose an explicit long-input SiLU implementation"
             )
         g, u, d = packs
         paired = pair_weights(g, u)

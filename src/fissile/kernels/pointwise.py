@@ -1,4 +1,4 @@
-"""Experimental Qwen3.5 pointwise fusion with the original rounding boundaries.
+"""Qwen3.5 pointwise fusion with the original rounding boundaries.
 
 No parameter, quantization, candidate, vocabulary, or cache changes. The
 torch-reduce mode retains Torch's FP32 mean reduction; the triton-reduce mode

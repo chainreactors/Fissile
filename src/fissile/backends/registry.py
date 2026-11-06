@@ -13,7 +13,6 @@ class BackendSpec:
     factory: str  # module:context_manager(config, model)
     combinations: frozenset[tuple[str, str, str]]  # profile, recipe, provider
     workload: str = "single-request candidate-token scoring"
-    experimental: bool = True
 
     def validate(self, config):
         if (
@@ -46,7 +45,7 @@ def get_backend(name):
 
 
 def backend(name):
-    """Legacy module lookup. Prefer open_backend for a checked scoring session."""
+    """Engine module lookup. Prefer open_backend for a checked scoring session."""
     return import_module(get_backend(name).factory.split(":", 1)[0])
 
 
@@ -56,7 +55,6 @@ def describe_backends():
             factory=s.factory,
             combinations=sorted(s.combinations),
             workload=s.workload,
-            experimental=s.experimental,
         )
         for name, s in BACKENDS.items()
     }

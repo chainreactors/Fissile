@@ -18,7 +18,7 @@ def canonical_key(name, keys):
     return matches[0]
 
 
-def import_legacy(prepared, output, profile=DEFAULT_PROFILE, recipe=DEFAULT_RECIPE):
+def import_packs(prepared, output, profile=DEFAULT_PROFILE, recipe=DEFAULT_RECIPE):
     profile = get_profile(profile)
     recipe = get_recipe(recipe)
     method = recipe.preparation_method

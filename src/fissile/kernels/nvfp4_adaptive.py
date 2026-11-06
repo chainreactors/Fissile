@@ -1,4 +1,4 @@
-"""Experimental NVFP4 activation packing for the selected SM121 runtime.
+"""NVFP4 activation packing for the selected SM121 runtime.
 
 Uses Blackwell's native E2M1 conversion. The optional two-candidate scale rule
 is inspired by Four Over Six (https://arxiv.org/abs/2512.02010v5): select the

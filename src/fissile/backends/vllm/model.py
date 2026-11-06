@@ -15,7 +15,7 @@ class FissileModel:
     def load_weights(self, weights):
         loaded = super().load_weights(weights)
         if hasattr(self, "_fissile_runtime"):
-            raise RuntimeError("Online weight reload is not qualified")
+            raise RuntimeError("Online weight reload is not supported")
         runtime = MixedRuntime(os.environ["FISSILE_CONFIG"])
         from fissile.backends.registry import get_backend
 
@@ -40,7 +40,7 @@ class FissileModel:
         if not 1 <= tokens <= self._fissile_runtime.profile.max_context:
             raise ValueError(
                 f"Only complete prefill up to {self._fissile_runtime.profile.max_context} "
-                f"tokens is qualified; got {tokens}"
+                f"tokens is supported; got {tokens}"
             )
         before = dict(self._fissile_runtime.calls)
         result = super().forward(input_ids, positions, intermediate_tensors, inputs_embeds, **kwargs)
@@ -49,7 +49,7 @@ class FissileModel:
 
     def compute_logits(self, hidden_states):
         if hidden_states.ndim != 2 or hidden_states.shape[0] != 1:
-            raise ValueError("Only final-token, single-request readout is qualified")
+            raise ValueError("Only final-token, single-request readout is supported")
         before = dict(self._fissile_runtime.calls)
         logits = super().compute_logits(hidden_states)
         self._fissile_runtime.validate_counts(before, head=1, body=0)

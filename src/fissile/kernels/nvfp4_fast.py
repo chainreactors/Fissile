@@ -1,4 +1,4 @@
-"""Experimental NVFP4 quantization with fused absolute maximum reduction.
+"""NVFP4 quantization with fused absolute maximum reduction.
 
 Preserves the original block-16/global-max recipe. Runtime row counts avoid
 compiling a separate quantization kernel for every input length.

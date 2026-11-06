@@ -1,4 +1,4 @@
-"""CPU-only checks for shared engine layouts, profile heads and legacy import."""
+"""CPU-only checks for shared engine layouts, profile heads and pack import."""
 from dataclasses import replace
 import json
 from pathlib import Path
@@ -6,7 +6,7 @@ import tempfile
 from types import SimpleNamespace
 import unittest
 
-from fissile.artifacts import canonical_key, import_legacy
+from fissile.artifacts import canonical_key, import_packs
 from fissile.backends.layouts import QWEN35_DENSE, get_layout, install_fused, register_layout
 from fissile.models import MLP, ModelProfile, Projection, get_profile, register_profile
 from fissile.providers import DEFAULT_PROVIDER, get_provider
@@ -137,7 +137,7 @@ class ProfileHead(unittest.TestCase):
                 ModelProfile("t", projections, (), 16, 4).head
 
 
-class LegacyImport(unittest.TestCase):
+class PackImport(unittest.TestCase):
     def test_canonical_key_ignores_module_prefixes(self):
         keys = {"layers.1.mlp.up_proj": 0, "layers.11.mlp.up_proj": 0, "lm_head": 0}
         self.assertEqual(canonical_key("base_model.model.lm_head", keys), "lm_head")
@@ -148,10 +148,10 @@ class LegacyImport(unittest.TestCase):
                 canonical_key(name, keys)
 
     def test_other_profile_and_prefix(self):
-        profile = ModelProfile("test-legacy-import", (Projection("block.proj", (128, 128)),
+        profile = ModelProfile("test-pack-import", (Projection("block.proj", (128, 128)),
                                                      Projection("readout", (128, 128), "head")), (), 128, 4)
         register_profile(profile)
-        register_recipe(Recipe("test-legacy-recipe", frozenset({profile.name}),
+        register_recipe(Recipe("test-pack-recipe", frozenset({profile.name}),
                                (("body", "fp4"), ("head", "w4a16")), "test-preparation"))
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -166,9 +166,9 @@ class LegacyImport(unittest.TestCase):
             (root / "protocol.json").write_text(json.dumps(dict(
                 method="test-preparation", labels_consumed=False, holdout_consumed=False, adapter_sha256="b" * 64)))
             with self.assertRaises(ValueError):
-                import_legacy(root, root / "default-recipe.json", profile.name)
-            manifest = import_legacy(root, root / "manifest.json", profile.name, "test-legacy-recipe")
-            self.assertEqual(manifest["recipe"], "test-legacy-recipe")
+                import_packs(root, root / "default-recipe.json", profile.name)
+            manifest = import_packs(root, root / "manifest.json", profile.name, "test-pack-recipe")
+            self.assertEqual(manifest["recipe"], "test-pack-recipe")
             self.assertEqual(manifest["method"], "test-preparation")
             self.assertEqual(manifest["profile"], profile.name)
             self.assertEqual(sorted(manifest["projections"]), ["block.proj", "readout"])

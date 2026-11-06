@@ -1,1 +1,1 @@
-"""Fissile experimental inference optimization layer."""
+"""Vendored third-party kernel sources; see THIRD_PARTY_NOTICES.md."""

@@ -104,7 +104,7 @@ binds the output head (`runtime.profile.head`).
 4. **Support and weights**: register a recipe and provider whose `profiles`
    include the model, add the backend combinations, then prepare packs with
    `prepare_projection` or import existing ones with
-   `fissile import-legacy --profile my-model --recipe my-recipe`.
+   `fissile import-packs --profile my-model --recipe my-recipe`.
 
 ## Other extension points
 

@@ -1,1 +1,1 @@
-"""Fissile experimental inference optimization layer."""
+"""Offline GPTQ projection preparation."""

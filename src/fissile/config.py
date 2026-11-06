@@ -174,7 +174,7 @@ class Config:
                 "silu_lut",
                 "silu_lut_sha256",
             }:
-                raise ValueError("Unknown or missing legacy configuration fields")
+                raise ValueError("Unknown or missing fissile-config-v1 fields")
             resources = {
                 "tensorfold_library": {"path": data["tensorfold_library"]},
                 "silu_lut": {

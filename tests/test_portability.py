@@ -2,7 +2,7 @@ import json, subprocess, sys, tempfile, unittest, ast, os
 from pathlib import Path
 from fissile.config import contained, validate_manifest, Config, sha256
 from fissile.models.qwen35 import projection_shapes, route
-from fissile.artifacts import import_legacy
+from fissile.artifacts import import_packs
 
 
 def fixture(root):
@@ -87,11 +87,11 @@ class Portability(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate_manifest(m, root, verify_files=False)
 
-    def test_legacy_import(self):
+    def test_pack_import(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             m = fixture(root)
-            legacy = {
+            prepared = {
                 (
                     "base_model.model.lm_head"
                     if k == "lm_head"
@@ -105,7 +105,7 @@ class Portability(unittest.TestCase):
                         complete=True,
                         method="full-h16-order",
                         adapter_sha256_after="b" * 64,
-                        projections=legacy,
+                        projections=prepared,
                     )
                 )
             )
@@ -119,10 +119,10 @@ class Portability(unittest.TestCase):
                     )
                 )
             )
-            imported = import_legacy(root, root / "portable.json")
+            imported = import_packs(root, root / "portable.json")
             self.assertEqual(imported["projections"], m["projections"])
             with self.assertRaises(FileExistsError):
-                import_legacy(root, root / "portable.json")
+                import_packs(root, root / "portable.json")
 
     def test_config_relative_paths_and_binary_receipt(self):
         with tempfile.TemporaryDirectory() as d:

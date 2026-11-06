@@ -1,1 +1,1 @@
-"""Fissile experimental inference optimization layer."""
+"""Engine adapters, shared module layouts and the backend registry."""

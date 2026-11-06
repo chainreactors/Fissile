@@ -1,29 +1,41 @@
 # Contributing
 
-Keep numerical changes separate from packaging or engine integration changes.
-State the model, hardware and workload a change supports. Add explicit checks
-instead of silently selecting a fallback for an unsupported shape or backend.
+## Setup and tests
 
-Dependency boundaries are tested: core and model metadata use the standard
-library; kernels must not import engine/model code; runtime owns reusable
-execution; adapters own engine layout and lifecycle; offline quantization does
-not depend on an active engine. Keep GPU work behind explicit calls.
+```bash
+python -m pip install -e .
+python -m unittest discover -s tests -v
+```
 
-Run CPU tests with `python -m unittest discover -s tests -v` and build a wheel.
-Run `python scripts/check_release.py` before publishing. Do not commit model
-weights, adapters, prompts, local configs or compiled kernels.
+The core package and its tests run on CPU without Torch. GPU work needs an
+engine environment ([setup](docs/artifacts.md#sglang-environment)).
 
-Keep README focused on usage and measured performance; put stable configuration
-and development guides in `docs/`, and sanitized benchmark measurements with
-their method in `bench/`. Machine-specific deployment manuals, run logs and
-one-off extraction or refactoring reports belong outside this repository.
+## Changes
 
-GPU checks require an idle device and the local operator's scheduling policy.
-No contributor workflow should kill another job or dispatch remotely by default.
-Record numerical equality, layer/projection coverage, and accuracy alongside
-performance. Historical results are not qualification for a changed package.
+- Keep numerical changes separate from packaging or engine integration changes.
+- State the model, hardware and workload a change supports. Raise an explicit
+  error for an unsupported shape or backend instead of silently falling back.
+- For numerical or performance changes, report raw-score equality or accuracy,
+  projection coverage and latency, measured on an idle GPU with the current
+  code.
+- Register only the `(profile, recipe, provider)` combinations a backend has
+  been verified with; see [Extending Fissile](docs/extensions.md).
 
-New engines implement the checked scoring contract and register exact capability
-combinations; see `docs/extensions.md`. Do not broaden qualification merely by
-adding a registry name. Keep model metadata and precision recipes separate.
-Providers own numerical implementations; runtime owns identity and coverage.
+## Architecture boundaries
+
+Core and model metadata use only the standard library. Kernels do not import
+engine or model code. Providers own numerical implementations; the runtime owns
+weight identity, binding and execution coverage; engine adapters own module
+layout and engine lifecycle. Offline quantization does not depend on a running
+engine. Model profiles and precision recipes stay separate.
+
+## Before publishing
+
+Run `python scripts/check_release.py` and build a wheel. Do not commit model
+weights, fine-tuning adapters, prompts, local configurations or compiled
+libraries.
+
+## Documentation
+
+README covers usage and measured performance; `docs/` holds configuration and
+development guides; `bench/` holds benchmark results with their method and data.

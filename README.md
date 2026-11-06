@@ -55,10 +55,10 @@ BF16 took 134.73 ms and `gb10-mixed-v2` 56.41 ms
 
 | Component | Supported |
 |---|---|
-| Hardware | NVIDIA GB10 (SM121); RTX 5090 D (SM120, SGLang, experimental) |
+| Hardware | NVIDIA GB10 (SM121); RTX 5090 D (SM120, SGLang) |
 | Platform | Linux aarch64 or x86_64, Python 3.12, CUDA 13 |
 | Model | Dense Qwen3.5-9B |
-| Engines | SGLang 0.5.21, vLLM 0.29.0 (experimental), PyTorch 2.13 |
+| Engines | SGLang 0.5.21, vLLM 0.29.0, PyTorch 2.13 |
 | Workload | Complete-prompt, final-token candidate scoring |
 
 | Backend | `model` argument | `token_logprobs` |
@@ -102,7 +102,7 @@ python scripts/build_silu_table.py --output artifacts/silu.safetensors
 Import prepared projection packs and write a manifest:
 
 ```bash
-fissile import-legacy --prepared /path/to/prepared-packs --output artifacts/manifest.json
+fissile import-packs --prepared /path/to/prepared-packs --output artifacts/manifest.json
 ```
 
 Copy [`examples/config-v2-gb10-cutlass.json`](examples/config-v2-gb10-cutlass.json),

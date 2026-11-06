@@ -246,16 +246,16 @@ def validate_pairs(records, expected_pairs, *, require_exact=False):
 
 
 def benchmark(args):
-    required = ['inputs','output','host_policy','gpu_lock']
-    if any(not getattr(args,name) for name in required):
-        raise ValueError('inputs, output, host-policy and gpu-lock are required')
+    if not args.inputs or not args.output:
+        raise ValueError('inputs and output are required')
     if args.rounds < 1:
         raise ValueError('rounds must be positive')
     if args.require_exact and not args.baseline_config:
         raise ValueError('Exact mixed/mixed comparison requires --baseline-config')
-    policy=json.loads(Path(args.host_policy).read_text());host=socket.gethostname()
-    if host not in policy['mainline_compute_hosts'] or host in policy.get('disabled_host_aliases',[]):
-        raise RuntimeError('Host is not allowed for benchmarks')
+    if args.host_policy:
+        policy=json.loads(Path(args.host_policy).read_text());host=socket.gethostname()
+        if host not in policy['mainline_compute_hosts'] or host in policy.get('disabled_host_aliases',[]):
+            raise RuntimeError('Host is not allowed for benchmarks')
     for name in ['FISSILE_SGLANG_MEM_FRACTION_STATIC','FISSILE_SGLANG_NCCL_PORT','SGLANG_EXTERNAL_MODEL_PACKAGE']:
         if os.environ.get(name):
             raise RuntimeError('Unset benchmark override: '+name)
@@ -266,8 +266,8 @@ def benchmark(args):
         assert len(r['labels'])==len(r['candidate_token_ids'])
         assert r['expected'] in r['labels'] and len(set(r['labels']))==len(r['labels'])
     output=Path(args.output);output.mkdir(parents=True,exist_ok=False)
-    lease=Path(args.gpu_lock).open('a+')
-    fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    lease=Path(args.gpu_lock).open('a+') if args.gpu_lock else None
+    if lease: fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
     active=subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader,nounits'],text=True).strip()
     util=subprocess.check_output(['nvidia-smi','--query-gpu=utilization.gpu','--format=csv,noheader,nounits'],text=True)
     if active or any(int(v)>5 for v in util.splitlines()):
@@ -277,7 +277,7 @@ def benchmark(args):
         raise RuntimeError('Paired resident engines require 80 GiB available host memory')
     protocol=dict(format='fissile-sglang-paired-v1',requests=len(rows),rounds=args.rounds,
         warmup_passes_per_arm=1,input_tokens=sum(len(r['input_ids']) for r in rows),
-        inputs_sha256=sha(args.inputs),runner_sha256=sha(__file__),host_policy_sha256=sha(args.host_policy),
+        inputs_sha256=sha(args.inputs),runner_sha256=sha(__file__),host_policy_sha256=sha(args.host_policy) if args.host_policy else None,
         random_seed=20261031,arm_order='Alternating per input; parity reversed each round',
         resident_engines=2,concurrent_gpu_calls=1,batch_size=1,generated_tokens=0,
         arms={'bf16': 'sglang-fissile-baseline' if args.baseline_config else 'sglang-bf16',
@@ -333,7 +333,7 @@ def benchmark(args):
         raise
     finally:
         for w in reversed(list(workers.values())): w.close()
-        lease.close()
+        if lease: lease.close()
 
 
 def main():
@@ -341,8 +341,10 @@ def main():
     parser.add_argument('--worker',choices=['bf16','mixed'],help=argparse.SUPPRESS)
     for name in ['model','config']:
         parser.add_argument('--'+name,required=True)
-    for name in ['inputs','output','host-policy','gpu-lock']:
+    for name in ['inputs','output']:
         parser.add_argument('--'+name)
+    parser.add_argument('--host-policy', help='Optional JSON file; run only on a host listed in its mainline_compute_hosts')
+    parser.add_argument('--gpu-lock', help='Optional lock file held exclusively for the run')
     parser.add_argument('--rounds',type=int,default=3)
     parser.add_argument('--baseline-config', help='Compare against a second Fissile config instead of BF16')
     parser.add_argument('--baseline-source', help='Trusted source root containing the baseline fissile package')

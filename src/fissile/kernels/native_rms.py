@@ -1,4 +1,4 @@
-"""Experimental fused RMSNorm retaining the installed Torch reduction order.
+"""Fused RMSNorm retaining the installed Torch reduction order.
 
 The FP32 contiguous mean uses four sequential accumulators per CUDA lane,
 then a descending binary reduction. See the installed ATen Reduce.cuh

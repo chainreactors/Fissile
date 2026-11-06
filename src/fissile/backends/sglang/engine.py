@@ -58,7 +58,7 @@ def scoring_engine(
         # Static activation scales: run the gb10-mixed-v2 configuration as its
         # gb10-mixed-v2-static variant for the lifetime of this engine.
         if prefill_cuda_graph:
-            raise ValueError("Static activation scales are not qualified with prefill CUDA graphs")
+            raise ValueError("Static activation scales are not supported with prefill CUDA graphs")
         from fissile.providers.static_scales import derived_config
 
         with tempfile.TemporaryDirectory(prefix="fissile-static-") as directory:

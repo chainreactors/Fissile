@@ -30,7 +30,7 @@ class PinnedFP4Gemm(unittest.TestCase):
         with self.assertRaises(ValueError):
             v2.validate(plan, capability=(12, 0))
 
-    def test_only_qualified_sglang_combination(self):
+    def test_only_declared_sglang_combination(self):
         cfg = SimpleNamespace(profile='qwen3.5-dense-9b', recipe='mixed-fp4-fp8-w4a16-v1',
                               kernel_provider='gb10-mixed-v2')
         get_backend('sglang').validate(cfg)

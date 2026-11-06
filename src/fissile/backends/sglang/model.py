@@ -15,7 +15,7 @@ class FissileModel:
     def load_weights(self, weights):
         loaded = super().load_weights(weights)
         if hasattr(self, "_fissile_runtime"):
-            raise RuntimeError("Online weight reload is not qualified")
+            raise RuntimeError("Online weight reload is not supported")
         runtime = MixedRuntime(os.environ["FISSILE_CONFIG"])
         from fissile.backends.registry import get_backend
 
@@ -66,7 +66,7 @@ class FissileModel:
         ):
             raise ValueError(
                 "Only singleton complete prefill scoring up to "
-                f"{self._fissile_runtime.profile.max_context} tokens is qualified; "
+                f"{self._fissile_runtime.profile.max_context} tokens is supported; "
                 f"shape={tuple(input_ids.shape)}, batch_size={forward_batch.batch_size}, "
                 f"extend_lengths={getattr(forward_batch, 'extend_seq_lens_cpu', None)}"
             )
