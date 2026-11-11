@@ -1,0 +1,98 @@
+{
+ "schema": "fissile-batch-scoring-v1",
+ "date": "2026-11-11",
+ "hardware": "NVIDIA GB10 (SM121), 128 GB unified memory; CUDA 13.0",
+ "software": "Torch 2.13.0+cu130, SGLang 0.5.21, Transformers 5.12.1, Triton 3.7.1, CuTe DSL 4.8.0",
+ "protocol": "sglang-candidates; one engine at a time on one GB10; a warm-up pass, then one recorded pass. ScopeJudge: 1,043 single questions. JEV-format requests: 645 requests with 1-3 questions (1,068 labelled questions) and 9 synthetic requests with 4, 8 and 16 questions on short, medium and long conversations. Serial arms score each question with score(); the batch arm scores single questions with score() and multi-question requests with score_batch(), with the cache kept across requests. Reference latency excludes the cache clears.",
+ "decision": "argmax candidate (ScopeJudge, choice), P(yes) >= 0.5 (noul), most probable legend key (score)",
+ "arms": {
+  "gb10-mixed-v2": {
+   "accuracy": {
+    "choice": 0.6364,
+    "noul": 0.8667,
+    "scope": 0.9578,
+    "score": 0.7153
+   },
+   "vs_gb10-mixed-v2": {
+    "only_gb10-mixed-v2": 0,
+    "only_this": 0,
+    "z": 0.0
+   },
+   "mean_ms": {
+    "jev-1q": 69.1,
+    "jev-2q": 79.5,
+    "jev-3q": 119.4,
+    "synthetic/16": 786.2,
+    "synthetic/4": 196.2,
+    "synthetic/8": 395.1
+   }
+  },
+  "gb10-mixed-v2-static": {
+   "accuracy": {
+    "choice": 0.6348,
+    "noul": 0.8833,
+    "scope": 0.9578,
+    "score": 0.7431
+   },
+   "vs_gb10-mixed-v2": {
+    "only_gb10-mixed-v2": 54,
+    "only_this": 63,
+    "z": 0.83
+   },
+   "mean_ms": {
+    "jev-1q": 63.2,
+    "jev-2q": 72.8,
+    "jev-3q": 109.6,
+    "synthetic/16": 721.9,
+    "synthetic/4": 179.1,
+    "synthetic/8": 357.6
+   }
+  },
+  "batch-reference": {
+   "accuracy": {
+    "choice": 0.6242,
+    "noul": 0.8833,
+    "scope": 0.954,
+    "score": 0.75
+   },
+   "vs_gb10-mixed-v2": {
+    "only_gb10-mixed-v2": 60,
+    "only_this": 60,
+    "z": 0.0
+   },
+   "mean_ms": {
+    "jev-1q": 72.4,
+    "jev-2q": 86.5,
+    "jev-3q": 129.9,
+    "synthetic/16": 849.2,
+    "synthetic/4": 211.5,
+    "synthetic/8": 424.7
+   }
+  },
+  "batch": {
+   "accuracy": {
+    "choice": 0.6242,
+    "noul": 0.8833,
+    "scope": 0.954,
+    "score": 0.75
+   },
+   "vs_gb10-mixed-v2": {
+    "only_gb10-mixed-v2": 60,
+    "only_this": 60,
+    "z": 0.0
+   },
+   "mean_ms": {
+    "jev-1q": 66.1,
+    "jev-2q": 52.7,
+    "jev-3q": 71.8,
+    "synthetic/16": 216.2,
+    "synthetic/4": 87.4,
+    "synthetic/8": 122.4
+   }
+  }
+ },
+ "exactness": {
+  "batch_vs_reference_scope_identical": "1043/1043",
+  "batch_vs_reference_requests_identical": "645/645"
+ }
+}

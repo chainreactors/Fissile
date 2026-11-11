@@ -35,6 +35,9 @@ class ProviderSpec:
     # Largest row count served by the paired gate/up MLP kernel; longer inputs
     # use separate gate/up GEMMs. Required with the ``paired_mlp`` fusion.
     paired_mlp_max_rows: int = 0
+    # Every output row depends only on its own input row: no activation scale
+    # is taken over the whole forward. Required for batched scoring.
+    row_independent: bool = False
 
     def __post_init__(self):
         if self.alignment < 1 or not self.packed_routes <= self.routes:
@@ -145,5 +148,6 @@ register_provider(
         factory="fissile.providers.gb10_static:GB10StaticProvider",
         resources=get_provider("gb10-mixed-v2").resources
         + (ResourceSpec("activation_scales", "sha256"),),
+        row_independent=True,
     )
 )

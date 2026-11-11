@@ -85,9 +85,9 @@ launch overhead. [Measurements](../bench/README.md#sglang-static-activation-scal
 every projection against the manifest, then installs Fissile projection methods
 and paired MLPs. Same-input projections share one activation pack per call and
 write into column slices of one output buffer. SGLang keeps its attention,
-normalization and recurrent-state kernels. The scoring engine runs
+normalization and recurrent-state kernels. By default the scoring engine runs
 single-request complete prefill with batching, chunked prefill, radix caching
-and, by default, CUDA graphs disabled. Inputs longer than the provider's
+and CUDA graphs disabled. Inputs longer than the provider's
 paired MLP row limit use separate gate/up GEMMs and Torch SiLU. The
 `sglang-candidates` backend computes the output head only for the requested
 candidate tokens.
@@ -96,6 +96,27 @@ Prefill CUDA graphs are off by default. `open_backend(..., prefill_cuda_graph=Tr
 or `--prefill-cuda-graph` in `examples/score_sglang.py` replays the transformer
 body from SGLang's breakable prefill graph for inputs up to 4,096 tokens; longer
 inputs run eagerly. [Measurements](../bench/README.md#sglang-prefill-cuda-graph).
+
+Batched scoring is off by default. `open_backend(..., batch=True,
+activation_scales="scales.json")` adds `score_batch(items)`: up to 16
+sequences per forward, a shared prefix of at least 192 tokens (cut to a
+multiple of 64) prefilled once, and SGLang's radix cache kept across calls.
+Scores are bitwise equal to scoring each sequence alone on an empty cache:
+
+- static activation scales make every quantized row independent of the
+  other rows in a forward (per-forward amax scales couple them, so `batch=True`
+  requires a `row_independent` provider);
+- SGLang deterministic inference makes attention and reductions
+  batch-invariant;
+- the radix cache keeps recurrent state only at the end of each cached prompt
+  (`no_buffer`; intermediate checkpoints do not reproduce a full prefill), and
+  a sequence that resumes a cached prompt ending on a multiple of 64 tokens
+  (the GDN chunk size) reproduces a full prefill. The session tracks cached
+  prompts and clears the cache before scoring a prompt that extends one ending
+  off that grid.
+
+Deterministic inference changes attention reduction order, so raw scores
+differ from the default (unbatched) engine.
 
 **vLLM.** The adapter registers a Qwen3.5 model class that installs the same
 Fissile projections and paired MLPs after vLLM loads the checkpoint. The engine

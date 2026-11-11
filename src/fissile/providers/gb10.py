@@ -125,9 +125,12 @@ class GB10Provider:
         scales_per_block = block * head.k // 16
 
         def apply(x, candidates):
-            ids = sorted(set(int(i) for i in candidates))
-            if len(x) != 1 or not ids or ids[0] < 0 or ids[-1] >= head.n:
-                raise ValueError("Candidate readout needs one row and valid token IDs")
+            # One candidate list for a single row, or one list per row (batched scoring).
+            rows = ([list(map(int, c)) for c in candidates]
+                    if candidates and isinstance(candidates[0], (list, tuple)) else [list(map(int, candidates))])
+            ids = sorted({i for row in rows for i in row})
+            if len(x) != len(rows) or not all(rows) or not ids or ids[0] < 0 or ids[-1] >= head.n:
+                raise ValueError("Candidate readout needs one candidate list per row and valid token IDs")
             blocks = sorted({i // block for i in ids})
             sub = type(head)(
                 torch.cat(
@@ -147,14 +150,15 @@ class GB10Provider:
                 head.k,
             )
             part = self.kernel.linear(x, sub, tactic="lean")
-            index = torch.tensor(
-                [blocks.index(i // block) * block + i % block for i in ids],
-                device=x.device,
-            )
             logits = torch.full(
-                (1, head.n), float("-inf"), dtype=part.dtype, device=x.device
+                (len(rows), head.n), float("-inf"), dtype=part.dtype, device=x.device
             )
-            logits[0, torch.tensor(ids, device=x.device)] = part[0, index]
+            for r, row in enumerate(rows):
+                index = torch.tensor(
+                    [blocks.index(i // block) * block + i % block for i in row],
+                    device=x.device,
+                )
+                logits[r, torch.tensor(row, device=x.device)] = part[r, index]
             return logits
 
         return apply

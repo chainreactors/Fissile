@@ -59,23 +59,55 @@ class FissileModel:
         return loaded
 
     def forward(self, input_ids, positions, forward_batch, *args, **kwargs):
-        if (
-            input_ids.ndim != 1
-            or not 1 < len(input_ids) <= self._fissile_runtime.profile.max_context
-            or forward_batch.batch_size != 1
-        ):
-            raise ValueError(
-                "Only singleton complete prefill scoring up to "
-                f"{self._fissile_runtime.profile.max_context} tokens is supported; "
-                f"shape={tuple(input_ids.shape)}, batch_size={forward_batch.batch_size}, "
-                f"extend_lengths={getattr(forward_batch, 'extend_seq_lens_cpu', None)}"
-            )
+        limit = int(os.environ.get("FISSILE_MAX_BATCH", "1"))
+        max_context = self._fissile_runtime.profile.max_context
+        lens = getattr(forward_batch, "extend_seq_lens_cpu", None)
+        if limit == 1:
+            if (
+                input_ids.ndim != 1
+                or not 1 < len(input_ids) <= max_context
+                or forward_batch.batch_size != 1
+            ):
+                raise ValueError(
+                    f"Only singleton complete prefill scoring up to {max_context} tokens is supported; "
+                    f"shape={tuple(input_ids.shape)}, batch_size={forward_batch.batch_size}, "
+                    f"extend_lengths={lens}"
+                )
+        else:
+            # Batched scoring: one extend over up to `limit` sequences; a sequence
+            # may continue a cached prefix.
+            if lens is None and getattr(forward_batch, "extend_seq_lens", None) is not None:
+                lens = forward_batch.extend_seq_lens.tolist()
+            totals = getattr(forward_batch, "seq_lens_cpu", None)
+            if totals is None and getattr(forward_batch, "seq_lens", None) is not None:
+                totals = forward_batch.seq_lens
+            totals = totals.tolist() if hasattr(totals, "tolist") else totals
+            if (
+                input_ids.ndim != 1
+                or not forward_batch.forward_mode.is_extend()
+                or not 1 <= forward_batch.batch_size <= limit
+                or lens is None
+                or len(lens) != forward_batch.batch_size
+                or min(int(n) for n in lens) < 1
+                or sum(int(n) for n in lens) != len(input_ids)
+                or totals is None
+                or max(int(n) for n in totals) > max_context
+            ):
+                raise ValueError(
+                    f"Batched scoring needs complete extends of at most {limit} sequences up to "
+                    f"{max_context} tokens; batch_size={forward_batch.batch_size}, extend_lengths={lens}"
+                )
         requested = getattr(forward_batch, "token_ids_logprobs", None)
-        self._fissile_candidates = requested[0] if requested else None
+        if limit == 1:
+            self._fissile_candidates = requested[0] if requested else None
+        else:
+            self._fissile_candidates = [list(c) for c in requested] if requested and all(requested) else None
         # Under prefill graph replay input_ids are padded to a bucket; the live
         # length comes from the batch metadata.
-        live = getattr(forward_batch, "extend_seq_lens_cpu", None)
-        live = int(live[0]) if live is not None and len(live) else len(input_ids)
+        if limit == 1:
+            live = int(lens[0]) if lens is not None and len(lens) else len(input_ids)
+        else:
+            live = len(input_ids)
         if not 1 < live <= len(input_ids):
             raise ValueError(f"Live token count {live} outside input of {len(input_ids)}")
         VALID_ROWS.publish(live)

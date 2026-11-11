@@ -26,6 +26,24 @@ class CheckedSession:
         self.closed = False
 
     def score(self, input_ids, candidate_token_ids):
+        ids, candidates = self._check_input(input_ids, candidate_token_ids)
+        return self._check_result(self.session.score(ids, candidates), ids, candidates)
+
+    def score_batch(self, items):
+        """Score several (input_ids, candidate_token_ids) items together.
+
+        Engines without batched scoring score the items one by one.
+        """
+        checked = [self._check_input(ids, candidates) for ids, candidates in items]
+        if not checked:
+            raise ValueError("Expected at least one item")
+        batch = getattr(self.session, "score_batch", None)
+        results = batch(checked) if batch else [self.session.score(*item) for item in checked]
+        if len(results) != len(checked):
+            raise RuntimeError("Backend violated the scoring result contract")
+        return [self._check_result(r, *item) for r, item in zip(results, checked)]
+
+    def _check_input(self, input_ids, candidate_token_ids):
         if self.closed:
             raise RuntimeError("Scoring session is closed")
         ids, candidates = tuple(input_ids), tuple(candidate_token_ids)
@@ -41,7 +59,9 @@ class CheckedSession:
             raise ValueError(
                 "Expected complete token IDs and distinct single-token candidates"
             )
-        result = self.session.score(ids, candidates)
+        return ids, candidates
+
+    def _check_result(self, result, ids, candidates):
         if (
             not isinstance(result, Score)
             or result.prompt_tokens != len(ids)

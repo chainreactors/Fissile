@@ -161,6 +161,35 @@ output, so it does not change scores.
 
 [Results](results/gb10-static-scales.json)
 
+## SGLang: batched scoring
+
+`open_backend(..., batch=True, activation_scales=...)` with `sglang-candidates`,
+static scales of the section above. ScopeJudge (1,043 single questions) and
+JEV-format requests: 645 requests with 1–3 questions (1,068 labelled
+questions) and 9 synthetic requests with 4, 8 and 16 questions. Single
+questions use `score`, multi-question requests `score_batch`; the cache is
+kept across requests. The reference scores every question alone on an empty
+cache of the same engine. Arms ran one after another on one GB10.
+
+Batched scores are bitwise equal to the reference: 1,043/1,043 ScopeJudge
+questions and 645/645 requests.
+
+| Mean latency | `gb10-mixed-v2` | `gb10-mixed-v2-static` | Reference | Batched |
+|---|---:|---:|---:|---:|
+| 1 question (348) | 69.1 ms | 63.2 ms | 72.4 ms | 66.1 ms |
+| 2 questions (144) | 79.5 ms | 72.8 ms | 86.5 ms | 52.7 ms |
+| 3 questions (144) | 119.4 ms | 109.6 ms | 129.9 ms | 71.8 ms |
+| 4 questions (3) | 196.2 ms | 179.1 ms | 211.5 ms | 87.4 ms |
+| 8 questions (3) | 395.1 ms | 357.6 ms | 424.7 ms | 122.4 ms |
+| 16 questions (3) | 786.2 ms | 721.9 ms | 849.2 ms | 216.2 ms |
+
+Deterministic inference costs 15–19% per sequence (reference vs
+`gb10-mixed-v2-static`). Accuracy on the labelled questions equals
+`gb10-mixed-v2` (ScopeJudge 95.40% vs 95.78%; 60 questions correct only with
+each, McNemar z = 0).
+
+[Results](results/gb10-batch-scoring.json)
+
 ## Pack preparation
 
 `fissile quantize` on one GB10 with 96 calibration questions (every 304th suite
@@ -210,6 +239,7 @@ Paired runs need an idle GPU and 80 GiB of free memory for two resident engines.
 | [gb10-vllm-scope.json](results/gb10-vllm-scope.json) | ScopeJudge vLLM vs SGLang |
 | [gb10-static-scales.json](results/gb10-static-scales.json) | Static activation scales, full suite |
 | [gb10-quantize.json](results/gb10-quantize.json) | `fissile quantize` packs, full suite |
+| [gb10-batch-scoring.json](results/gb10-batch-scoring.json) | Batched scoring, ScopeJudge and JEV-format requests |
 
 CSV files contain anonymous request indices, timings, labels and raw candidate
 scores; no prompts or weights.

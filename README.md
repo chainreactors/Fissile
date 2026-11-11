@@ -141,6 +141,16 @@ with open_backend("sglang", "config.json", model_dir) as session:
     print(result.token_logprobs, result.prompt_tokens)
 ```
 
+Batched scoring (static activation scales required): the items of one call run
+together and share a long common prefix; scores are bitwise equal to scoring
+each item alone ([details](docs/architecture.md#engine-adapters)).
+
+```python
+with open_backend("sglang-candidates", "config.json", model_dir,
+                  batch=True, activation_scales="scales.json") as session:
+    results = session.score_batch([(ids_a, candidates_a), (ids_b, candidates_b)])
+```
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)
