@@ -1,5 +1,7 @@
 """GB10 numerical implementation, independent of model and engine layout."""
 
+import os
+
 import torch
 from safetensors.torch import load_file
 from fissile.config import require_gpu
@@ -72,9 +74,12 @@ class GB10Provider:
 
         elif route == "w4a16":
             packed = repack(packed)
+            # One final-token row per scored sequence: one row, or up to the
+            # engine's batch size under batched scoring (FISSILE_MAX_BATCH).
+            max_rows = int(os.environ.get("FISSILE_MAX_BATCH", "1"))
 
             def compute(activation, rows, out=None):
-                if rows != 1 or out is not None:
+                if out is not None or not 1 <= rows <= max_rows:
                     raise ValueError(
                         "Only final-token, full-vocabulary scoring is supported"
                     )
