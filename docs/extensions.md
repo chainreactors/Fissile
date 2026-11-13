@@ -39,8 +39,14 @@ register_backend(BackendSpec(
         "mixed-fp4-fp8-w4a16-v1",
         "gb10-mixed-v1",
     )}),
+    engine="my-engine",  # optional: distribution checked against engines.VALIDATED
 ))
 ```
+
+With `engine` set, `open_backend` checks the installed release and the
+versions of `fissile.backends.engines.STACK` against
+`fissile.backends.engines.VALIDATED[engine]`
+([engine upgrades](engine-upgrades.md)).
 
 The adapter loads the config, maps the engine's merged or split weights to
 canonical projection keys and binds the shared runtime:

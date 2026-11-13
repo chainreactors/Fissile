@@ -87,9 +87,19 @@ GPU and prints its SHA256.
 
 ## SGLang environment
 
-Python 3.12, Torch 2.13.0+cu130, SGLang 0.5.21, Transformers 5.12.1,
-Triton 3.7.1 and CuTe DSL 4.8.0. Install SGLang in its own environment, then
-place CuTe DSL 4.8.0 ahead of SGLang's dependencies on `PYTHONPATH`:
+Python 3.12, Torch 2.14.1+cu130, SGLang 0.5.23, Transformers 5.19.0,
+Triton 3.8.0 and CuTe DSL 4.8.0, in an environment of its own:
+
+```bash
+python scripts/engine_env.py --engine sglang==0.5.23 --output env-sglang
+```
+
+The script installs SGLang with the CUDA build of Torch, installs Fissile and
+writes `env-sglang/stack.json`; package indexes and proxies come from your pip
+configuration. Other validated stacks are listed in
+[engine upgrades](engine-upgrades.md#validated-stacks). SGLang 0.5.21 pins CuTe
+DSL 4.6.2; with it, place CuTe DSL 4.8.0 ahead of SGLang's dependencies on
+`PYTHONPATH`:
 
 ```bash
 FISSILE_DSL_DIR="$HOME/.local/share/fissile/cute-4.8"

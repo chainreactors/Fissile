@@ -5,6 +5,7 @@ import os
 from vllm.model_executor.models.qwen3_5 import (
     Qwen3_5ForConditionalGeneration as _Qwen3_5,
 )
+from fissile.backends.engines import engine_status
 from fissile.backends.layouts import PackedMethod, get_layout, install_fused, module_at
 from fissile.runtime.mixed import MixedRuntime
 
@@ -29,6 +30,7 @@ class FissileModel:
         self._fissile_runtime = runtime
         report = runtime.validate_coverage()
         report["engine"] = "vllm"
+        report.update(engine_status("vllm"))
         with (out / "quant-install.json").open("x") as f:
             json.dump(report, f, indent=2)
         return loaded

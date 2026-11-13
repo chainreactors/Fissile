@@ -35,6 +35,13 @@ every question. Decision: four-decimal candidate probabilities, lexical tie
 break. The same configuration produces bitwise-identical raw scores on three
 GB10 devices.
 
+Raw scores depend on the engine's kernel builds
+([numerical noise](../docs/engine-upgrades.md#numerical-noise)). The
+configuration was evaluated on the stack above, which places it on the
+favorable side of the near-tie noise: with numerically different, otherwise
+equivalent stacks `gb10-mixed-v2` scores 74.79–74.82% (deterministic inference;
+Triton 3.8.0; SGLang 0.5.23), while BF16 stays at 76.38–76.39%.
+
 [Results](results/gb10-sglang-full.json)
 
 ## PyTorch: full evaluation suite
@@ -190,6 +197,23 @@ each, McNemar z = 0).
 
 [Results](results/gb10-batch-scoring.json)
 
+## SGLang 0.5.23
+
+`scripts/check_engine.py` on the full evaluation suite, SGLang 0.5.23 (Torch
+2.14.1, Triton 3.8.0, CuTe DSL 4.8.0, FlashInfer 0.7.2) against the SGLang
+0.5.21 stack, `sglang-candidates`, `gb10-mixed-v2`. One run per arm, one GB10.
+
+| Arm | 0.5.21 | 0.5.23 | McNemar z |
+|---|---:|---:|---:|
+| SGLang BF16 | 76.38%, 134.73 ms | 76.39%, 128.52 ms | +0.32 |
+| Fissile, against the 0.5.21 perturbed run (74.79%) | 75.18%, 56.41 ms | 74.82%, 54.81 ms | +0.25 |
+
+`score_batch` is bitwise equal to `score` (256 of 256 questions, static
+activation scales). Raw Fissile scores equal SGLang 0.5.21 with Triton 3.8.0
+on every question ([numerical noise](../docs/engine-upgrades.md#numerical-noise)).
+
+[Results](results/gb10-sglang-0.5.23-check.json)
+
 ## Pack preparation
 
 `fissile quantize` on one GB10 with 96 calibration questions (every 304th suite
@@ -240,6 +264,7 @@ Paired runs need an idle GPU and 80 GiB of free memory for two resident engines.
 | [gb10-static-scales.json](results/gb10-static-scales.json) | Static activation scales, full suite |
 | [gb10-quantize.json](results/gb10-quantize.json) | `fissile quantize` packs, full suite |
 | [gb10-batch-scoring.json](results/gb10-batch-scoring.json) | Batched scoring, ScopeJudge and JEV-format requests |
+| [gb10-sglang-0.5.23-check.json](results/gb10-sglang-0.5.23-check.json) | Engine check, SGLang 0.5.23 against 0.5.21, full suite |
 
 CSV files contain anonymous request indices, timings, labels and raw candidate
 scores; no prompts or weights.

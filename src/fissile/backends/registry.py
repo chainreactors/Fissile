@@ -13,6 +13,7 @@ class BackendSpec:
     factory: str  # module:context_manager(config, model)
     combinations: frozenset[tuple[str, str, str]]  # profile, recipe, provider
     workload: str = "single-request candidate-token scoring"
+    engine: str | None = None  # distribution checked against engines.VALIDATED
 
     def validate(self, config):
         if (
@@ -50,27 +51,38 @@ def backend(name):
 
 
 def describe_backends():
+    from .engines import VALIDATED, installed_version
+
     return {
         name: dict(
             factory=s.factory,
             combinations=sorted(s.combinations),
             workload=s.workload,
+            engine=s.engine,
+            validated_engines=VALIDATED.get(s.engine, {}),
+            installed_engine_version=installed_version(s.engine) if s.engine else None,
         )
         for name, s in BACKENDS.items()
     }
 
 
 @contextmanager
-def open_backend(name, config, model, **options):
+def open_backend(name, config, model, *, allow_unvalidated_engine=False, **options):
+    """Checked scoring session. The installed engine release must be validated
+    for the backend (engines.VALIDATED) unless ``allow_unvalidated_engine``."""
     from fissile.config import Config
     from pathlib import Path
+    from .engines import check_engine
 
-    # Validate capabilities before importing external engine code. The adapter
-    # validates file integrity before installation through Config/MixedRuntime.
+    # Validate capabilities and the engine release before importing external
+    # engine code. The adapter validates file integrity before installation
+    # through Config/MixedRuntime.
     config = Path(config).resolve()
     cfg = Config.load(config, verify_files=False)
     spec = get_backend(name)
     spec.validate(cfg)
+    if spec.engine:
+        check_engine(spec.engine, allow_unvalidated=allow_unvalidated_engine)
     module, symbol = spec.factory.split(":", 1)
     with getattr(import_module(module), symbol)(config, model, **options) as session:
         checked = CheckedSession(session, cfg.plan.profile)
@@ -95,6 +107,7 @@ register_backend(
             ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2-static"),
         },
         workload="single-request candidate-normalized scoring",
+        engine="sglang",
     )
 )
 register_backend(
@@ -102,6 +115,7 @@ register_backend(
         "vllm",
         "fissile.backends.vllm.engine:open_session",
         _INITIAL | {("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2")},
+        engine="vllm",
     )
 )
 register_backend(
@@ -115,5 +129,6 @@ register_backend(
             ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2-calibration"),
             ("qwen3.5-dense-9b", "mixed-fp4-fp8-w4a16-v1", "gb10-mixed-v2-static"),
         },
+        engine="sglang",
     )
 )

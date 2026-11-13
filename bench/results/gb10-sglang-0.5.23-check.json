@@ -1,0 +1,128 @@
+{
+ "schema": "fissile-engine-check-v1",
+ "date": "2026-11-13",
+ "hardware": "NVIDIA GB10 (SM121), 128 GB unified memory; CUDA 13.0",
+ "tool": "scripts/check_engine.py --backend sglang-candidates --bf16 --activation-scales ... --reference ...",
+ "inputs": {
+  "questions": 29182,
+  "inputs_sha256": "f2024e97a132d577bf9af07dbf290c59c84bfc55e77b5b8da96b0fbbbd68feaf"
+ },
+ "candidate": {
+  "engine": "sglang",
+  "release": "0.5.23",
+  "stack": {
+   "torch": "2.14.1",
+   "triton": "3.8.0",
+   "nvidia-cutlass-dsl": "4.8.0",
+   "flashinfer-python": "0.7.2"
+  },
+  "recorded": {
+   "transformers": "5.19.0",
+   "sglang-kernel": "0.4.10",
+   "sglang": "0.5.23"
+  },
+  "arms": {
+   "fissile": {
+    "startup_seconds": 276.8,
+    "mean_ms": 54.812625436196925,
+    "labelled": 29182,
+    "correct": 21835,
+    "accuracy": 0.7482352134877664
+   },
+   "bf16": {
+    "startup_seconds": 146.0,
+    "mean_ms": 128.52398692330874,
+    "labelled": 29182,
+    "correct": 22292,
+    "accuracy": 0.7638955520526352
+   }
+  },
+  "batch": {
+   "scored": 256,
+   "equal": 256,
+   "batch_size": 4
+  }
+ },
+ "reference": {
+  "release": "0.5.21",
+  "stack": {
+   "torch": "2.13.0",
+   "triton": "3.7.1",
+   "nvidia-cutlass-dsl": "4.8.0",
+   "flashinfer-python": "0.6.18"
+  },
+  "arms": {
+   "fissile": {
+    "startup_seconds": 260.8,
+    "mean_ms": 56.40650922986414,
+    "labelled": 29182,
+    "correct": 21939,
+    "accuracy": 0.7517990542115003
+   },
+   "bf16": {
+    "startup_seconds": 153.8,
+    "mean_ms": 134.7331279434864,
+    "labelled": 29182,
+    "correct": 22288,
+    "accuracy": 0.7637584812555686
+   },
+   "perturbed": {
+    "startup_seconds": 271.3,
+    "mean_ms": 59.104024581367966,
+    "labelled": 29182,
+    "correct": 21825,
+    "accuracy": 0.7478925364950997
+   }
+  },
+  "note": "SGLang 0.5.21 full-suite runs; perturbed = deterministic inference"
+ },
+ "comparisons": {
+  "bf16_vs_bf16": {
+   "compared": 29182,
+   "bitwise_equal": 2,
+   "decisions_changed": 208,
+   "accuracy": 0.7638955520526352,
+   "reference_accuracy": 0.7637584812555686,
+   "only_reference_correct": 77,
+   "only_candidate_correct": 81,
+   "mcnemar_z": 0.318222913670292,
+   "mean_ms": 128.52398692330874,
+   "reference_mean_ms": 134.7331279434864
+  },
+  "fissile_vs_perturbed": {
+   "compared": 29182,
+   "bitwise_equal": 532,
+   "decisions_changed": 2263,
+   "accuracy": 0.7482352134877664,
+   "reference_accuracy": 0.7478925364950997,
+   "only_reference_correct": 824,
+   "only_candidate_correct": 834,
+   "mcnemar_z": 0.24558833620630074,
+   "mean_ms": 54.812625436196925,
+   "reference_mean_ms": 59.104024581367966
+  },
+  "fissile_vs_fissile": {
+   "compared": 29182,
+   "bitwise_equal": 923,
+   "decisions_changed": 1712,
+   "accuracy": 0.7482352134877664,
+   "reference_accuracy": 0.7517990542115003,
+   "only_reference_correct": 668,
+   "only_candidate_correct": 564,
+   "mcnemar_z": -2.9629749879505867,
+   "mean_ms": 54.812625436196925,
+   "reference_mean_ms": 56.40650922986414
+  }
+ },
+ "gate": "fissile_vs_perturbed",
+ "verdict": {
+  "checks": {
+   "installed": true,
+   "repeatable": true,
+   "batch_exact": true,
+   "bf16_not_worse": true,
+   "fissile_not_worse": true
+  },
+  "passed": true
+ }
+}

@@ -58,7 +58,7 @@ BF16 took 134.73 ms and `gb10-mixed-v2` 56.41 ms
 | Hardware | NVIDIA GB10 (SM121); RTX 5090 D (SM120, SGLang) |
 | Platform | Linux aarch64 or x86_64, Python 3.12, CUDA 13 |
 | Model | Dense Qwen3.5-9B |
-| Engines | SGLang 0.5.21, vLLM 0.29.0, PyTorch 2.13 |
+| Engines | SGLang 0.5.23 and 0.5.21, vLLM 0.29.0 ([validated stacks](docs/engine-upgrades.md#validated-stacks)); PyTorch 2.13 |
 | Workload | Complete-prompt, final-token candidate scoring |
 
 | Backend | `model` argument | `token_logprobs` |
@@ -85,9 +85,11 @@ fissile backends
 ```
 
 The base package has no GPU dependencies. Engine environment: Torch
-2.13.0+cu130, SGLang 0.5.21, Transformers 5.12.1, Triton 3.7.1 and CuTe DSL
+2.14.1+cu130, SGLang 0.5.23, Transformers 5.19.0, Triton 3.8.0 and CuTe DSL
 4.8.0 ([setup](docs/artifacts.md#sglang-environment)); vLLM 0.29.0 uses its own
-environment ([setup](docs/artifacts.md#vllm-environment)).
+environment ([setup](docs/artifacts.md#vllm-environment)). Fissile refuses
+engine stacks it has not been validated with
+([engine upgrades](docs/engine-upgrades.md)).
 
 ## Quick start
 
@@ -156,6 +158,7 @@ with open_backend("sglang-candidates", "config.json", model_dir,
 - [Architecture](docs/architecture.md)
 - [Configuration and artifacts](docs/artifacts.md)
 - [Extending Fissile](docs/extensions.md)
+- [Engine upgrades](docs/engine-upgrades.md)
 - [Benchmarks](bench/README.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)

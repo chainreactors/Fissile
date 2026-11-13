@@ -186,8 +186,8 @@ def scoring_engine(
         engine = sglang.Engine(
             model_path=str(Path(model_path).resolve()),
             dtype="bfloat16",
-            # SGLang 0.5.21 reserves six positions in get_worker_info(), then
-            # rejects input length >= that limit. Reserve seven slots so the
+            # SGLang 0.5.21 to 0.5.23 reserve six positions in get_worker_info(),
+            # then reject input length >= that limit. Reserve seven slots so the
             # full public max_context is accepted; never truncate the input.
             context_length=context_length + 7,
             cuda_graph_backend_decode="disabled",

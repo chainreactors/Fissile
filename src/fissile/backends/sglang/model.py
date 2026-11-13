@@ -4,6 +4,7 @@ import json
 import os
 from types import MethodType
 from sglang.srt.models.qwen3_5 import Qwen3_5ForConditionalGeneration as _Qwen3_5
+from fissile.backends.engines import engine_status
 from fissile.backends.layouts import PackedMethod, get_layout, install_fused, module_at
 from fissile.runtime.mixed import MixedRuntime
 from fissile.runtime.graph import VALID_ROWS
@@ -53,6 +54,7 @@ class FissileModel:
         VALID_ROWS.allocate(head_module.weight.device)
         report = runtime.validate_coverage()
         report["engine"] = "sglang"
+        report.update(engine_status("sglang"))
         report["readout"] = readout
         with (out / "quant-install.json").open("x") as f:
             json.dump(report, f, indent=2)
