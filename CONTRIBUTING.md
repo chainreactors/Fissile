@@ -19,7 +19,7 @@ engine environment ([setup](docs/artifacts.md#sglang-environment)).
   projection coverage and latency, measured on an idle GPU with the current
   code.
 - Register only the `(profile, recipe, provider)` combinations a backend has
-  been verified with; see [Extending Fissile](docs/extensions.md).
+  been verified with; see [Extending JevInfer](docs/extensions.md).
 
 ## Architecture boundaries
 

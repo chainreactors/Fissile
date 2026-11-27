@@ -1,4 +1,4 @@
-# Extending Fissile
+# Extending JevInfer
 
 ## Scoring API
 
@@ -128,4 +128,4 @@ and `mlp`, and optionally `projection_group`, `joined_projection_group` and
 provider declares.
 
 `tests/test_extensions.py` shows an external adapter, model profile, recipe and
-provider registered without modifying Fissile.
+provider registered without modifying JevInfer.

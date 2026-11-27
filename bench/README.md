@@ -17,8 +17,8 @@ paired MLPs.
 | Execution | Accuracy | Mean latency | Speedup |
 |---|---:|---:|---:|
 | SGLang BF16 | 76.38% | 137.11 ms | 1.00× |
-| Fissile `gb10-mixed-v1` | 75.19% | 59.72 ms | 2.30× |
-| Fissile `gb10-mixed-v2`, `sglang-candidates` | 75.18% | 56.43 ms | **2.43×** |
+| JevInfer `gb10-mixed-v1` | 75.19% | 59.72 ms | 2.30× |
+| JevInfer `gb10-mixed-v2`, `sglang-candidates` | 75.18% | 56.43 ms | **2.43×** |
 
 | Question type | BF16 | `gb10-mixed-v2` |
 |---|---:|---:|
@@ -49,7 +49,7 @@ Triton 3.8.0; SGLang 0.5.23), while BF16 stays at 76.38–76.39%.
 | Execution | Accuracy | Mean latency | Requests/s | Speedup |
 |---|---:|---:|---:|---:|
 | PyTorch BF16 | 76.31% (22,270) | 235.00 ms | 4.26 | 1.00× |
-| PyTorch + Fissile | 74.72% (21,804) | 66.07 ms | 15.13 | **3.56×** |
+| PyTorch + JevInfer | 74.72% (21,804) | 66.07 ms | 15.13 | **3.56×** |
 
 Times sum recorded request scoring, including encoding and execution checks,
 excluding loading and preparation.
@@ -65,7 +65,7 @@ samples one transport token per question in both arms.
 | Execution | Accuracy | Mean latency | Speedup |
 |---|---:|---:|---:|
 | vLLM BF16 | 76.42% (22,300) | 155.34 ms | 1.00× |
-| Fissile `gb10-mixed-v2` | 74.69% (21,797) | 79.73 ms | **1.95×** |
+| JevInfer `gb10-mixed-v2` | 74.69% (21,797) | 79.73 ms | **1.95×** |
 
 | Question type | BF16 | `gb10-mixed-v2` |
 |---|---:|---:|
@@ -84,9 +84,9 @@ timed calls per arm.
 | Execution | Mean | P50 | P95 | Requests/s | Correct | Balanced accuracy |
 |---|---:|---:|---:|---:|---:|---:|
 | SGLang BF16 | 138.94 ms | 129.89 ms | 202.66 ms | 7.20 | 1002 | 83.32% |
-| Fissile `gb10-mixed-v1` | 66.09 ms | 57.32 ms | 96.89 ms | 15.13 | 999 | 79.92% |
+| JevInfer `gb10-mixed-v1` | 66.09 ms | 57.32 ms | 96.89 ms | 15.13 | 999 | 79.92% |
 
-### Fissile optimizations
+### JevInfer optimizations
 
 Each row is a paired comparison against the preceding implementation; raw
 candidate scores (or, for candidate readout, all decisions) are identical.
@@ -206,10 +206,10 @@ each, McNemar z = 0).
 | Arm | 0.5.21 | 0.5.23 | McNemar z |
 |---|---:|---:|---:|
 | SGLang BF16 | 76.38%, 134.73 ms | 76.39%, 128.52 ms | +0.32 |
-| Fissile, against the 0.5.21 perturbed run (74.79%) | 75.18%, 56.41 ms | 74.82%, 54.81 ms | +0.25 |
+| JevInfer, against the 0.5.21 perturbed run (74.79%) | 75.18%, 56.41 ms | 74.82%, 54.81 ms | +0.25 |
 
 `score_batch` is bitwise equal to `score` (256 of 256 questions, static
-activation scales). Raw Fissile scores equal SGLang 0.5.21 with Triton 3.8.0
+activation scales). Raw JevInfer scores equal SGLang 0.5.21 with Triton 3.8.0
 on every question ([numerical noise](../docs/engine-upgrades.md#numerical-noise)).
 
 [Results](results/gb10-sglang-0.5.23-check.json)
@@ -239,12 +239,12 @@ and `expected`.
 
 ```bash
 python scripts/benchmark_sglang.py --model /path/to/merged-model \
-  --config /path/to/fissile.json --inputs /path/to/inputs.jsonl \
+  --config /path/to/config.json --inputs /path/to/inputs.jsonl \
   --output /path/to/new-run --rounds 3
 ```
 
 `--baseline-config` with `--baseline-source`/`--candidate-source` compares two
-Fissile builds; `--require-exact` fails on any raw-score difference;
+JevInfer builds; `--require-exact` fails on any raw-score difference;
 `--candidate-backend sglang-candidates` selects candidate readout;
 `--activation-scales` runs the candidate arm with static activation scales.
 Paired runs need an idle GPU and 80 GiB of free memory for two resident engines.
@@ -256,7 +256,7 @@ Paired runs need an idle GPU and 80 GiB of free memory for two resident engines.
 | [gb10-sglang-full.json](results/gb10-sglang-full.json) | SGLang full suite |
 | [gb10-pytorch-full.json](results/gb10-pytorch-full.json) | PyTorch full suite, per panel |
 | [gb10-vllm-full.json](results/gb10-vllm-full.json) | vLLM full suite |
-| [gb10-scope.json](results/gb10-scope.json) · [csv](results/gb10-scope.csv) | ScopeJudge BF16 vs Fissile |
+| [gb10-scope.json](results/gb10-scope.json) · [csv](results/gb10-scope.csv) | ScopeJudge BF16 vs JevInfer |
 | [gb10-activation-reuse.json](results/gb10-activation-reuse.json) · [csv](results/gb10-activation-reuse.csv) | Shared activation packing |
 | [gb10-spark-optimization.json](results/gb10-spark-optimization.json) · [csv](results/gb10-spark-optimization.csv) | Grouped output, pinned GEMM |
 | [gb10-candidate-readout.json](results/gb10-candidate-readout.json) · [csv](results/gb10-candidate-readout.csv) | Candidate-only readout |

@@ -1,6 +1,6 @@
 # Third-party notices
 
-Fissile includes and adapts the following upstream components.
+JevInfer includes and adapts the following upstream components.
 
 | Component | Pinned source | Use | License |
 |---|---|---|---|

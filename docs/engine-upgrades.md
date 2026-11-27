@@ -1,6 +1,6 @@
 # Engine upgrades
 
-Fissile runs inside SGLang and vLLM. Its kernels replace the projections and
+JevInfer runs inside SGLang and vLLM. Its kernels replace the projections and
 the output head; the engine keeps attention, normalization and recurrent-state
 kernels, scheduling and caching. Those engine kernels are compiled by the
 installed Triton, CuTe DSL and FlashInfer, and FP4 activations turn last-bit
@@ -42,7 +42,7 @@ stacks:
 
 SGLang 0.5.23 is bitwise equal to SGLang 0.5.21 with Triton 3.8.0 on every
 question: the differences come from Triton's code generation for SGLang's
-linear-attention and gated-norm kernels. Fissile's own kernels give bitwise
+linear-attention and gated-norm kernels. JevInfer's own kernels give bitwise
 equal outputs under both Triton releases. BF16 accuracy moves by less than
 0.02 points between these stacks (76.38%, 76.39%).
 
@@ -66,14 +66,14 @@ original run.
    inputs (`--perturbed` adds the deterministic-inference run):
 
    ```bash
-   python scripts/check_engine.py --backend sglang-candidates --config fissile.json \
+   python scripts/check_engine.py --backend sglang-candidates --config config.json \
      --model MODEL --inputs suite.jsonl --bf16 --perturbed --output reference-sglang-0.5.21
    ```
 
 4. Check the candidate in its environment against that reference:
 
    ```bash
-   python scripts/check_engine.py --backend sglang-candidates --config fissile.json \
+   python scripts/check_engine.py --backend sglang-candidates --config config.json \
      --model MODEL --inputs suite.jsonl --bf16 --activation-scales scales.json \
      --reference reference-sglang-0.5.21 --output check-sglang-0.5.23
    ```
@@ -87,7 +87,7 @@ original run.
    | `repeatable` | Rescored inputs are bitwise equal |
    | `batch_exact` | `score_batch` is bitwise equal to `score` (with `--activation-scales`) |
    | `bf16_not_worse` | BF16 accuracy is not significantly lower than the reference's (McNemar z ≥ −1.96) |
-   | `fissile_not_worse` | Fissile accuracy is not significantly lower than the reference's perturbed run (McNemar z ≥ −1.96) |
+   | `fissile_not_worse` | JevInfer accuracy is not significantly lower than the reference's perturbed run (McNemar z ≥ −1.96) |
 
    Use the full evaluation inputs: on 1,043 ScopeJudge questions alone, a
    0.36-point change on the full suite is not visible.
@@ -96,7 +96,7 @@ original run.
    benchmarks.
 
 `--bf16` and `--perturbed` are available for the SGLang backends; vLLM checks
-compare Fissile runs only.
+compare JevInfer runs only.
 
 ## What the adapters depend on
 

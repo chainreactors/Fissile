@@ -1,8 +1,8 @@
-# Fissile
+# JevInfer
 
 **Mixed-precision inference for SGLang, vLLM and PyTorch on NVIDIA GB10 (DGX Spark).**
 
-Fissile runs an NVFP4/FP8 mixed-precision recipe inside existing inference
+JevInfer runs an NVFP4/FP8 mixed-precision recipe inside existing inference
 engines. Models, precision recipes, kernel providers and engine adapters are
 separate components; the engines keep their own scheduling, attention and
 state kernels.
@@ -15,12 +15,12 @@ batch size 1. Full evaluation suite: 27,438 requests, 29,182 questions.
 | Engine | Execution | Accuracy | Mean latency | Speedup |
 |---|---|---:|---:|---:|
 | SGLang | BF16 | 76.38% | 137.11 ms | 1.00× |
-| SGLang | Fissile `gb10-mixed-v2`, candidate readout | 75.18% | 56.43 ms | **2.43×** |
-| SGLang | Fissile `gb10-mixed-v2`, candidate readout, static activation scales¹ | 75.01% | 52.62 ms | **2.56×** |
+| SGLang | JevInfer `gb10-mixed-v2`, candidate readout | 75.18% | 56.43 ms | **2.43×** |
+| SGLang | JevInfer `gb10-mixed-v2`, candidate readout, static activation scales¹ | 75.01% | 52.62 ms | **2.56×** |
 | vLLM | BF16 | 76.42% | 155.34 ms | 1.00× |
-| vLLM | Fissile `gb10-mixed-v2` | 74.69% | 79.73 ms | **1.95×** |
+| vLLM | JevInfer `gb10-mixed-v2` | 74.69% | 79.73 ms | **1.95×** |
 | PyTorch | BF16 | 76.31% | 235.00 ms | 1.00× |
-| PyTorch | Fissile | 74.72% | 66.07 ms | **3.56×** |
+| PyTorch | JevInfer | 74.72% | 66.07 ms | **3.56×** |
 
 ¹ Opt-in. Speedup against BF16 timed in the same session on one GB10, in which
 BF16 took 134.73 ms and `gb10-mixed-v2` 56.41 ms
@@ -87,7 +87,7 @@ fissile backends
 The base package has no GPU dependencies. Engine environment: Torch
 2.14.1+cu130, SGLang 0.5.23, Transformers 5.19.0, Triton 3.8.0 and CuTe DSL
 4.8.0 ([setup](docs/artifacts.md#sglang-environment)); vLLM 0.29.0 uses its own
-environment ([setup](docs/artifacts.md#vllm-environment)). Fissile refuses
+environment ([setup](docs/artifacts.md#vllm-environment)). JevInfer refuses
 engine stacks it has not been validated with
 ([engine upgrades](docs/engine-upgrades.md)).
 
@@ -157,7 +157,7 @@ with open_backend("sglang-candidates", "config.json", model_dir,
 
 - [Architecture](docs/architecture.md)
 - [Configuration and artifacts](docs/artifacts.md)
-- [Extending Fissile](docs/extensions.md)
+- [Extending JevInfer](docs/extensions.md)
 - [Engine upgrades](docs/engine-upgrades.md)
 - [Benchmarks](bench/README.md)
 - [Contributing](CONTRIBUTING.md)
@@ -165,7 +165,7 @@ with open_backend("sglang-candidates", "config.json", model_dir,
 
 ## Acknowledgements
 
-Fissile builds on [SGLang](https://github.com/sgl-project/sglang),
+JevInfer builds on [SGLang](https://github.com/sgl-project/sglang),
 [PyTorch](https://github.com/pytorch/pytorch),
 [TensorFold](https://github.com/ashhart/TensorFold) (W4A16 head kernels),
 [FlashInfer](https://github.com/flashinfer-ai/flashinfer) and

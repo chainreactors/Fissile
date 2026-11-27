@@ -60,7 +60,7 @@ Scales come from the same configuration's calibration variant, which keeps the
 `gb10-mixed-v2` arithmetic and records each site's largest per-forward scale:
 
 ```bash
-python scripts/calibrate_activation_scales.py --config fissile.json \
+python scripts/calibrate_activation_scales.py --config config.json \
     --model MODEL --inputs suite.jsonl --output scales.json   # every 29th row
 ```
 
@@ -82,7 +82,7 @@ launch overhead. [Measurements](../bench/README.md#sglang-static-activation-scal
 ## Engine adapters
 
 **SGLang.** An external model package loads the merged checkpoint, verifies
-every projection against the manifest, then installs Fissile projection methods
+every projection against the manifest, then installs JevInfer projection methods
 and paired MLPs. Same-input projections share one activation pack per call and
 write into column slices of one output buffer. SGLang keeps its attention,
 normalization and recurrent-state kernels. By default the scoring engine runs
@@ -119,7 +119,7 @@ Deterministic inference changes attention reduction order, so raw scores
 differ from the default (unbatched) engine.
 
 **vLLM.** The adapter registers a Qwen3.5 model class that installs the same
-Fissile projections and paired MLPs after vLLM loads the checkpoint. The engine
+JevInfer projections and paired MLPs after vLLM loads the checkpoint. The engine
 core runs in-process with the V1 model runner, one sequence at a time, eager
 execution and no prefix caching; a full prompt always fits one scheduling step,
 so prefill is never chunked. vLLM samples at least one token, so scoring

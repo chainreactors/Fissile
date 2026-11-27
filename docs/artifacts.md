@@ -1,6 +1,6 @@
 # Configuration and artifacts
 
-Fissile loads external artifacts; none are stored in this repository.
+JevInfer loads external artifacts; none are stored in this repository.
 
 | Artifact | Contents | Integrity check |
 |---|---|---|
@@ -94,7 +94,7 @@ Triton 3.8.0 and CuTe DSL 4.8.0, in an environment of its own:
 python scripts/engine_env.py --engine sglang==0.5.23 --output env-sglang
 ```
 
-The script installs SGLang with the CUDA build of Torch, installs Fissile and
+The script installs SGLang with the CUDA build of Torch, installs JevInfer and
 writes `env-sglang/stack.json`; package indexes and proxies come from your pip
 configuration. Other validated stacks are listed in
 [engine upgrades](engine-upgrades.md#validated-stacks). SGLang 0.5.21 pins CuTe
@@ -102,9 +102,9 @@ DSL 4.6.2; with it, place CuTe DSL 4.8.0 ahead of SGLang's dependencies on
 `PYTHONPATH`:
 
 ```bash
-FISSILE_DSL_DIR="$HOME/.local/share/fissile/cute-4.8"
-python -m pip install --target "$FISSILE_DSL_DIR" 'nvidia-cutlass-dsl[cu13]==4.8.0'
-export PYTHONPATH="$FISSILE_DSL_DIR/nvidia_cutlass_dsl/dsl_packages:$FISSILE_DSL_DIR${PYTHONPATH:+:$PYTHONPATH}"
+JEVINFER_DSL_DIR="$HOME/.local/share/jevinfer/cute-4.8"
+python -m pip install --target "$JEVINFER_DSL_DIR" 'nvidia-cutlass-dsl[cu13]==4.8.0'
+export PYTHONPATH="$JEVINFER_DSL_DIR/nvidia_cutlass_dsl/dsl_packages:$JEVINFER_DSL_DIR${PYTHONPATH:+:$PYTHONPATH}"
 python -c 'import importlib.metadata as m; print(m.version("nvidia-cutlass-dsl"))'  # 4.8.0
 python -m pip install .
 ```
